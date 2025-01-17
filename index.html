@@ -23,29 +23,28 @@
         </form>
     </div>
 
-    <script>
-        document.getElementById("loginForm").addEventListener("submit", function (e) {
-            e.preventDefault();
+    <script src="https://cdn.jsdelivr.net/npm/crypto-js@4.1.1/crypto-js.js"></script>
+<script>
+document.getElementById("loginForm").addEventListener("submit", function (e) {
+    e.preventDefault();
 
-            const email = document.getElementById("email").value;
-            const password = document.getElementById("password").value;
-            const users = JSON.parse(localStorage.getItem("users")) || [
-                { id: "user-1", name: "Admin", email: "admin@gmail.com", password: "adminpass", role: "admin", status: "aktif" },
-    { id: "user-2", name: "Kasir", email: "kasir@gmail.com", password: "kasirpass", role: "kasir", status: "aktif" },
-    { id: "user-3", name: "Pelanggan", email: "pelanggan@gmail.com", password: "pelangganpass", role: "pelanggan", status: "aktif" }
-];
+    const email = document.getElementById("email").value;
+    const password = document.getElementById("password").value;
+    const hashedPassword = CryptoJS.SHA256(password).toString(); // Hash password
+    const users = JSON.parse(localStorage.getItem("users")) || [];
 
-            const user = users.find(u => u.email === email && u.password === password);
+    const user = users.find(u => u.email === email && u.password === hashedPassword);
 
-            if (user) {
-                localStorage.setItem("currentUser", JSON.stringify(user));
-                Swal.fire("Success", "Login successful!", "success").then(() => {
-                    window.location.href = "dashboard.html";
-                });
-            } else {
-                Swal.fire("Error", "Invalid email or password.", "error");
-            }
+    if (user) {
+        localStorage.setItem("currentUser", JSON.stringify(user));
+        Swal.fire("Success", "Login successful!", "success").then(() => {
+            window.location.href = "dashboard.html";
         });
-    </script>
+    } else {
+        Swal.fire("Error", "Invalid email or password.", "error");
+    }
+});
+</script>
+
 </body>
 </html>
