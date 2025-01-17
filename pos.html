@@ -106,22 +106,23 @@
         </div>
 
         <!-- Laporan Transaksi -->
-        <table class="table table-bordered table-striped">
-    <thead class="table-primary">
-        <tr>
-            <th>No</th>
-            <th>ID Transaksi</th>
-            <th>Nama Pelanggan</th>
-            <th>Total Pembayaran</th>
-            <th>Status Pembayaran</th>
-            <th>Aksi</th>
-        </tr>
-    </thead>
-    <tbody id="transactionReportBody">
-        <!-- Daftar transaksi akan dimuat di sini -->
-    </tbody>
-</table>
-
+        <div class="mt-5">
+            <h4>Laporan Transaksi</h4>
+            <table class="table table-bordered table-striped">
+                <thead class="table-primary">
+                    <tr>
+                        <th>No</th>
+                        <th>ID Transaksi</th>
+                        <th>Nama Pelanggan</th>
+                        <th>Total Pembayaran</th>
+                        <th>Status Pembayaran</th>
+                    </tr>
+                </thead>
+                <tbody id="transactionReportBody">
+                    <!-- Laporan transaksi akan dimuat di sini -->
+                </tbody>
+            </table>
+        </div>
     </div>
 
     <script>
@@ -130,16 +131,96 @@
         let transactions = JSON.parse(localStorage.getItem("transactions")) || [];
         let cart = [];
 
-        // Menampilkan pelanggan pada form select
-        function loadCustomers() {
-            const customerSelect = document.getElementById("customerId");
-            customers.forEach(customer => {
-                const option = document.createElement("option");
-                option.value = customer.id;
-                option.textContent = customer.name;
-                customerSelect.appendChild(option);
-            });
+
+        let customers = JSON.parse(localStorage.getItem("customers")) || [];
+
+// Mengatur tampilan berdasarkan role yang dipilih
+function handleRoleChange() {
+    const role = document.getElementById("role").value;
+    const formUmum = document.getElementById("formUmum");
+    const formPelSemPelMem = document.getElementById("formPelSemPelMem");
+
+    if (role === "Umum") {
+        formUmum.classList.remove("d-none");
+        formPelSemPelMem.classList.add("d-none");
+    } else if (role === "PelSem" || role === "PelMem") {
+        formUmum.classList.add("d-none");
+        formPelSemPelMem.classList.remove("d-none");
+        loadCustomersDropdown(role);
+    } else {
+        formUmum.classList.add("d-none");
+        formPelSemPelMem.classList.add("d-none");
+    }
+}
+
+// Memuat data pelanggan ke dropdown
+function loadCustomersDropdown(role) {
+    const customerDropdown = document.getElementById("customerDropdown");
+    customerDropdown.innerHTML = '<option value="">-- Pilih Pelanggan --</option>';
+
+    const filteredCustomers = customers.filter(customer => customer.role === role);
+
+    filteredCustomers.forEach(customer => {
+        const option = document.createElement("option");
+        option.value = customer.id;
+        option.textContent = `${customer.name} (${customer.id})`;
+        customerDropdown.appendChild(option);
+    });
+}
+
+// Menyimpan data pelanggan
+function saveCustomer() {
+    const role = document.getElementById("role").value;
+
+    if (role === "Umum") {
+        const name = document.getElementById("generalName").value;
+        const contact = document.getElementById("generalContact").value;
+        const email = document.getElementById("generalEmail").value;
+        const address = document.getElementById("generalAddress").value;
+
+        if (!name) {
+            Swal.fire("Error", "Nama pelanggan wajib diisi.", "error");
+            return;
         }
+
+        const newCustomer = {
+            id: Date.now(),
+            name,
+            contact,
+            email,
+            address,
+            role: "Umum"
+        };
+
+        customers.push(newCustomer);
+        localStorage.setItem("customers", JSON.stringify(customers));
+        Swal.fire("Sukses", "Data pelanggan berhasil disimpan.", "success");
+    } else if (role === "PelSem" || role === "PelMem") {
+        const selectedCustomerId = document.getElementById("customerDropdown").value;
+
+        if (!selectedCustomerId) {
+            Swal.fire("Error", "Pilih pelanggan terlebih dahulu.", "error");
+            return;
+        }
+
+        const selectedCustomer = customers.find(customer => customer.id == selectedCustomerId);
+        Swal.fire("Sukses", `Pelanggan ${selectedCustomer.name} berhasil dipilih.`, "success");
+    } else {
+        Swal.fire("Error", "Pilih role terlebih dahulu.", "error");
+    }
+}
+//======================
+
+        // Menampilkan pelanggan pada form select
+  //      function loadCustomers() {
+        //    const customerSelect = document.getElementById("customerId");
+          //  customers.forEach(customer => {
+            //   const option = document.createElement("option");
+             //   option.value = customer.id;
+             //   option.textContent = customer.name;
+              //  customerSelect.appendChild(option);
+         //   });
+     //   }
 
         // Menampilkan produk pada form select
         function loadProducts() {
