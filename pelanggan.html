@@ -14,6 +14,12 @@
         .navbar-brand {
             font-weight: bold;
         }
+        .profile-pic {
+            width: 50px;
+            height: 50px;
+            object-fit: cover;
+            border-radius: 50%;
+        }
     </style>
 </head>
 <body>
@@ -41,8 +47,13 @@
     <div class="container mt-4">
         <h2 class="text-center mb-4">Kelola Pelanggan</h2>
 
+        <!-- Search Bar -->
+        <div class="mb-3">
+            <input type="text" id="searchCustomer" class="form-control" placeholder="Cari pelanggan berdasarkan nama atau email..." onkeyup="filterCustomers()">
+        </div>
+
         <!-- Form Tambah/Edit Pelanggan -->
-        <form id="customerForm">
+        <form id="customerForm" enctype="multipart/form-data">
             <div class="row g-3 mb-3">
                 <div class="col-md-6">
                     <label for="customerName" class="form-label">Nama Pelanggan</label>
@@ -80,6 +91,12 @@
                     </select>
                 </div>
             </div>
+            <div class="row g-3 mb-3">
+                <div class="col-md-6">
+                    <label for="customerPhoto" class="form-label">Foto</label>
+                    <input type="file" id="customerPhoto" class="form-control">
+                </div>
+            </div>
             <div class="text-center">
                 <button type="submit" class="btn btn-primary">Simpan</button>
             </div>
@@ -92,11 +109,13 @@
                 <thead class="table-primary">
                     <tr>
                         <th>No</th>
+                        <th>Foto</th>
                         <th>Nama</th>
                         <th>Email</th>
                         <th>No. Telepon</th>
                         <th>Alamat</th>
                         <th>Role</th>
+                        <th>Diskon</th>
                         <th>Status</th>
                         <th>Aksi</th>
                     </tr>
@@ -114,9 +133,13 @@
         document.addEventListener("DOMContentLoaded", function () {
             loadCustomers();
 
-            // Handle form submit
             document.getElementById("customerForm").addEventListener("submit", function (e) {
                 e.preventDefault();
+                const customerPhotoInput = document.getElementById("customerPhoto");
+                const photo = customerPhotoInput.files[0] 
+                    ? URL.createObjectURL(customerPhotoInput.files[0]) 
+                    : null;
+
                 const customer = {
                     id: Date.now(),
                     name: document.getElementById("customerName").value,
@@ -124,7 +147,8 @@
                     phone: document.getElementById("customerPhone").value,
                     address: document.getElementById("customerAddress").value,
                     role: document.getElementById("customerRole").value,
-                    status: document.getElementById("customerStatus").value
+                    status: document.getElementById("customerStatus").value,
+                    photo: photo,
                 };
                 customers.push(customer);
                 saveCustomers();
@@ -139,14 +163,21 @@
             tbody.innerHTML = "";
 
             customers.forEach((customer, index) => {
+                const discount = customer.role === "pelmem" ? "20%" : customer.role === "pelsem" ? "10%" : "0%";
+                const photoHTML = customer.photo 
+                    ? `<img src="${customer.photo}" class="profile-pic">` 
+                    : `<i class="fas fa-user-circle fa-2x text-secondary"></i>`;
+
                 const tr = document.createElement("tr");
                 tr.innerHTML = `
                     <td>${index + 1}</td>
+                    <td>${photoHTML}</td>
                     <td>${customer.name}</td>
                     <td>${customer.email}</td>
                     <td>${customer.phone}</td>
                     <td>${customer.address}</td>
                     <td>${customer.role}</td>
+                    <td>${discount}</td>
                     <td>${customer.status}</td>
                     <td>
                         <button class="btn btn-warning btn-sm" onclick="editCustomer(${customer.id})">Edit</button>
@@ -161,32 +192,14 @@
             localStorage.setItem("customers", JSON.stringify(customers));
         }
 
-        function editCustomer(id) {
-            const customer = customers.find(c => c.id === id);
-            if (customer) {
-                document.getElementById("customerName").value = customer.name;
-                document.getElementById("customerEmail").value = customer.email;
-                document.getElementById("customerPhone").value = customer.phone;
-                document.getElementById("customerAddress").value = customer.address;
-                document.getElementById("customerRole").value = customer.role;
-                document.getElementById("customerStatus").value = customer.status;
-                customers = customers.filter(c => c.id !== id);
-                saveCustomers();
-            }
-        }
-
-        function deleteCustomer(id) {
-            customers = customers.filter(c => c.id !== id);
-            saveCustomers();
+        function filterCustomers() {
+            const query = document.getElementById("searchCustomer").value.toLowerCase();
+            const filtered = customers.filter(customer => 
+                customer.name.toLowerCase().includes(query) || 
+                customer.email.toLowerCase().includes(query)
+            );
+            customers = filtered;
             loadCustomers();
-            Swal.fire("Dihapus!", "Data pelanggan telah dihapus.", "success");
-        }
-
-        function logout() {
-            localStorage.removeItem("currentUser");
-            Swal.fire("Logged Out", "Anda telah logout.", "success").then(() => {
-                window.location.href = "index.html";
-            });
         }
     </script>
 
