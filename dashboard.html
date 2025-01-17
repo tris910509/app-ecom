@@ -6,16 +6,37 @@
     <title>Dashboard</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+        }
+        .navbar-brand {
+            font-weight: bold;
+        }
+    </style>
 </head>
 <body>
-    <div class="container mt-5">
-        <h2 class="text-center">Dashboard</h2>
-        <h4 id="welcomeMessage"></h4>
-        <button class="btn btn-danger" onclick="logout()">Logout</button>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="#">Dashboard</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul id="navbarLinks" class="navbar-nav ms-auto">
+                    <!-- Navbar links will be dynamically populated -->
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Dashboard Content -->
+    <div class="container mt-4">
+        <h2 class="text-center mb-4">Welcome to the Dashboard</h2>
+        <div id="welcomeMessage" class="text-center mb-5"></div>
     </div>
-
-    <div id="stats"></div>
-
 
     <script>
         document.addEventListener("DOMContentLoaded", function () {
@@ -28,10 +49,52 @@
                 return;
             }
 
+            // Welcome Message
             const welcomeMessage = document.getElementById("welcomeMessage");
-            welcomeMessage.textContent = `Welcome, ${currentUser.name}! Your role: ${currentUser.role}`;
+            welcomeMessage.textContent = `Hello, ${currentUser.name}! Your role is ${currentUser.role}.`;
+
+            // Navbar Links Based on Role
+            const navbarLinks = document.getElementById("navbarLinks");
+            navbarLinks.innerHTML = ""; // Clear existing links
+
+            if (currentUser.role === "admin") {
+                navbarLinks.innerHTML = `
+                    <li class="nav-item"><a class="nav-link" href="users.html">Users</a></li>
+                    <li class="nav-item"><a class="nav-link" href="pelanggan.html">Pelanggan</a></li>
+                    <li class="nav-item"><a class="nav-link" href="supplier.html">Supplier</a></li>
+                    <li class="nav-item"><a class="nav-link" href="kategori.html">Kategori</a></li>
+                    <li class="nav-item"><a class="nav-link" href="produk.html">Produk</a></li>
+                    <li class="nav-item"><a class="nav-link" href="pos.html">POS</a></li>
+                    <li class="nav-item"><a class="nav-link" href="ecommerce.html">E-Commerce</a></li>
+                    <li class="nav-item"><a class="nav-link" href="pembayaran.html">Pembayaran</a></li>
+                    <li class="nav-item"><a class="nav-link" href="konfirmasi-pembayaran.html">Konfirmasi Pembayaran</a></li>
+                    <li class="nav-item"><a class="nav-link" href="laporan.html">Laporan</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#" onclick="logout()">Logout</a></li>
+                `;
+            } else if (currentUser.role === "kasir") {
+                navbarLinks.innerHTML = `
+                    <li class="nav-item"><a class="nav-link" href="pos.html">POS</a></li>
+                    <li class="nav-item"><a class="nav-link" href="ecommerce.html">E-Commerce</a></li>
+                    <li class="nav-item"><a class="nav-link" href="konfirmasi-pembayaran.html">Konfirmasi Pembayaran</a></li>
+                    <li class="nav-item"><a class="nav-link" href="laporan.html">Laporan</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#" onclick="logout()">Logout</a></li>
+                `;
+            } else if (currentUser.role === "pelanggan") {
+                navbarLinks.innerHTML = `
+                    <li class="nav-item"><a class="nav-link" href="pesan-produk.html">Pesan Produk</a></li>
+                    <li class="nav-item"><a class="nav-link" href="keranjang.html">Keranjang</a></li>
+                    <li class="nav-item"><a class="nav-link" href="pengiriman.html">Pengiriman</a></li>
+                    <li class="nav-item"><a class="nav-link" href="metode-pembayaran.html">Metode Pembayaran</a></li>
+                    <li class="nav-item"><a class="nav-link" href="bukti-pembayaran.html">Bukti Pembayaran</a></li>
+                    <li class="nav-item"><a class="nav-link" href="invoice.html">Invoice</a></li>
+                    <li class="nav-item"><a class="nav-link" href="notif.html">Notifikasi</a></li>
+                    <li class="nav-item"><a class="nav-link" href="riwayat-pesan.html">Riwayat Pesanan</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#" onclick="logout()">Logout</a></li>
+                `;
+            }
         });
 
+        // Logout Function
         function logout() {
             localStorage.removeItem("currentUser");
             Swal.fire("Logged Out", "You have been logged out.", "success").then(() => {
@@ -39,5 +102,7 @@
             });
         }
     </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
