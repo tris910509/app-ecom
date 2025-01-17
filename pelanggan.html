@@ -14,12 +14,6 @@
         .navbar-brand {
             font-weight: bold;
         }
-        .profile-pic {
-            width: 50px;
-            height: 50px;
-            object-fit: cover;
-            border-radius: 50%;
-        }
     </style>
 </head>
 <body>
@@ -47,76 +41,56 @@
     <div class="container mt-4">
         <h2 class="text-center mb-4">Kelola Pelanggan</h2>
 
-        <!-- Search Bar -->
-        <div class="mb-3">
-            <input type="text" id="searchCustomer" class="form-control" placeholder="Cari pelanggan berdasarkan nama atau email..." onkeyup="filterCustomers()">
-        </div>
-
-        <!-- Form Tambah/Edit Pelanggan -->
-        <form id="customerForm" enctype="multipart/form-data">
+        <!-- Form Input Pelanggan -->
+        <form id="customerForm">
             <div class="row g-3 mb-3">
+                <div class="col-md-6">
+                    <label for="role" class="form-label">Role</label>
+                    <select id="role" class="form-control" required>
+                        <option value="umum">Umum</option>
+                        <option value="pelsem">PelSem</option>
+                        <option value="pelmem">PelMem</option>
+                    </select>
+                </div>
                 <div class="col-md-6">
                     <label for="customerName" class="form-label">Nama Pelanggan</label>
-                    <input type="text" id="customerName" class="form-control" required>
-                </div>
-                <div class="col-md-6">
-                    <label for="customerEmail" class="form-label">Email</label>
-                    <input type="email" id="customerEmail" class="form-control" required>
+                    <input type="text" id="customerName" class="form-control" disabled required>
                 </div>
             </div>
             <div class="row g-3 mb-3">
                 <div class="col-md-6">
-                    <label for="customerPhone" class="form-label">No. Telepon</label>
-                    <input type="text" id="customerPhone" class="form-control" required>
+                    <label for="contact" class="form-label">Kontak</label>
+                    <input type="text" id="contact" class="form-control" required>
                 </div>
                 <div class="col-md-6">
-                    <label for="customerAddress" class="form-label">Alamat</label>
-                    <input type="text" id="customerAddress" class="form-control" required>
-                </div>
-            </div>
-            <div class="row g-3 mb-3">
-                <div class="col-md-6">
-                    <label for="customerRole" class="form-label">Role</label>
-                    <select id="customerRole" class="form-select" required>
-                        <option value="umum">Umum</option>
-                        <option value="pelsem">Pelanggan Semi-Member</option>
-                        <option value="pelmem">Pelanggan Member</option>
-                    </select>
-                </div>
-                <div class="col-md-6">
-                    <label for="customerStatus" class="form-label">Status</label>
-                    <select id="customerStatus" class="form-select" required>
-                        <option value="aktif">Aktif</option>
-                        <option value="nonaktif">Nonaktif</option>
-                    </select>
+                    <label for="email" class="form-label">Email</label>
+                    <input type="email" id="email" class="form-control" required>
                 </div>
             </div>
             <div class="row g-3 mb-3">
                 <div class="col-md-6">
-                    <label for="customerPhoto" class="form-label">Foto</label>
-                    <input type="file" id="customerPhoto" class="form-control">
+                    <label for="address" class="form-label">Alamat</label>
+                    <input type="text" id="address" class="form-control" required>
                 </div>
             </div>
             <div class="text-center">
-                <button type="submit" class="btn btn-primary">Simpan</button>
+                <button type="submit" class="btn btn-primary">Simpan Pelanggan</button>
             </div>
         </form>
 
-        <!-- Tabel Pelanggan -->
+        <!-- Tabel Daftar Pelanggan -->
         <div class="mt-5">
             <h4>Daftar Pelanggan</h4>
             <table class="table table-bordered table-striped">
                 <thead class="table-primary">
                     <tr>
                         <th>No</th>
-                        <th>Foto</th>
-                        <th>Nama</th>
-                        <th>Email</th>
-                        <th>No. Telepon</th>
-                        <th>Alamat</th>
                         <th>Role</th>
-                        <th>Diskon</th>
-                        <th>Status</th>
+                        <th>Nama Pelanggan</th>
+                        <th>Kontak</th>
+                        <th>Email</th>
+                        <th>Alamat</th>
+                        <th>ID Pelanggan</th>
                         <th>Aksi</th>
                     </tr>
                 </thead>
@@ -130,55 +104,26 @@
     <script>
         let customers = JSON.parse(localStorage.getItem("customers")) || [];
 
-        document.addEventListener("DOMContentLoaded", function () {
-            loadCustomers();
+        // Menyimpan pelanggan ke localStorage
+        function saveCustomers() {
+            localStorage.setItem("customers", JSON.stringify(customers));
+        }
 
-            document.getElementById("customerForm").addEventListener("submit", function (e) {
-                e.preventDefault();
-                const customerPhotoInput = document.getElementById("customerPhoto");
-                const photo = customerPhotoInput.files[0] 
-                    ? URL.createObjectURL(customerPhotoInput.files[0]) 
-                    : null;
-
-                const customer = {
-                    id: Date.now(),
-                    name: document.getElementById("customerName").value,
-                    email: document.getElementById("customerEmail").value,
-                    phone: document.getElementById("customerPhone").value,
-                    address: document.getElementById("customerAddress").value,
-                    role: document.getElementById("customerRole").value,
-                    status: document.getElementById("customerStatus").value,
-                    photo: photo,
-                };
-                customers.push(customer);
-                saveCustomers();
-                loadCustomers();
-                this.reset();
-                Swal.fire("Berhasil!", "Data pelanggan telah disimpan.", "success");
-            });
-        });
-
+        // Menampilkan tabel pelanggan
         function loadCustomers() {
             const tbody = document.getElementById("customerTableBody");
             tbody.innerHTML = "";
 
             customers.forEach((customer, index) => {
-                const discount = customer.role === "pelmem" ? "20%" : customer.role === "pelsem" ? "10%" : "0%";
-                const photoHTML = customer.photo 
-                    ? `<img src="${customer.photo}" class="profile-pic">` 
-                    : `<i class="fas fa-user-circle fa-2x text-secondary"></i>`;
-
                 const tr = document.createElement("tr");
                 tr.innerHTML = `
                     <td>${index + 1}</td>
-                    <td>${photoHTML}</td>
-                    <td>${customer.name}</td>
-                    <td>${customer.email}</td>
-                    <td>${customer.phone}</td>
-                    <td>${customer.address}</td>
                     <td>${customer.role}</td>
-                    <td>${discount}</td>
-                    <td>${customer.status}</td>
+                    <td>${customer.name}</td>
+                    <td>${customer.contact}</td>
+                    <td>${customer.email}</td>
+                    <td>${customer.address}</td>
+                    <td>${customer.id}</td>
                     <td>
                         <button class="btn btn-warning btn-sm" onclick="editCustomer(${customer.id})">Edit</button>
                         <button class="btn btn-danger btn-sm" onclick="deleteCustomer(${customer.id})">Delete</button>
@@ -188,19 +133,87 @@
             });
         }
 
-        function saveCustomers() {
-            localStorage.setItem("customers", JSON.stringify(customers));
+        // Menambah pelanggan baru
+        document.getElementById("customerForm").addEventListener("submit", function (e) {
+            e.preventDefault();
+            const role = document.getElementById("role").value;
+            const name = document.getElementById("customerName").value;
+            const contact = document.getElementById("contact").value;
+            const email = document.getElementById("email").value;
+            const address = document.getElementById("address").value;
+
+            // ID Unik untuk pelanggan
+            const customerId = Date.now(); // Menggunakan timestamp sebagai ID unik
+
+            const customer = {
+                id: customerId,
+                role: role,
+                name: name,
+                contact: contact,
+                email: email,
+                address: address
+            };
+            customers.push(customer);
+            saveCustomers();
+            loadCustomers();
+            document.getElementById("customerForm").reset();
+            Swal.fire("Sukses", "Pelanggan telah ditambahkan!", "success");
+        });
+
+        // Menghapus pelanggan
+        function deleteCustomer(id) {
+            Swal.fire({
+                title: 'Hapus Pelanggan?',
+                text: "Data ini tidak dapat dikembalikan!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Ya, hapus pelanggan!',
+                cancelButtonText: 'Batal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    customers = customers.filter(customer => customer.id !== id);
+                    saveCustomers();
+                    loadCustomers();
+                    Swal.fire("Terhapus!", "Pelanggan telah dihapus.", "success");
+                }
+            });
         }
 
-        function filterCustomers() {
-            const query = document.getElementById("searchCustomer").value.toLowerCase();
-            const filtered = customers.filter(customer => 
-                customer.name.toLowerCase().includes(query) || 
-                customer.email.toLowerCase().includes(query)
-            );
-            customers = filtered;
-            loadCustomers();
+        // Edit pelanggan
+        function editCustomer(id) {
+            const customer = customers.find(c => c.id === id);
+            if (customer) {
+                document.getElementById("role").value = customer.role;
+                document.getElementById("customerName").value = customer.name;
+                document.getElementById("contact").value = customer.contact;
+                document.getElementById("email").value = customer.email;
+                document.getElementById("address").value = customer.address;
+
+                // Hapus pelanggan dan beri ID untuk memperbarui
+                customers = customers.filter(c => c.id !== id);
+                saveCustomers();
+                loadCustomers();
+            }
         }
+
+        // Mengubah nama pelanggan berdasarkan role
+        document.getElementById("role").addEventListener("change", function () {
+            const role = this.value;
+            const customerNameField = document.getElementById("customerName");
+
+            if (role === "umum") {
+                customerNameField.disabled = false;
+            } else {
+                const customer = customers.find(c => c.role === role);
+                if (customer) {
+                    customerNameField.value = customer.name;
+                    customerNameField.disabled = true;
+                }
+            }
+        });
+
+        // Memulai fungsi
+        loadCustomers();
     </script>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
