@@ -20,6 +20,9 @@
             object-fit: cover;
             border-radius: 50%;
         }
+        .search-bar {
+            margin-bottom: 15px;
+        }
     </style>
 </head>
 <body>
@@ -47,6 +50,11 @@
     <div class="container mt-4">
         <h2 class="text-center mb-4">Kelola Supplier</h2>
 
+        <!-- Search Bar -->
+        <div class="search-bar">
+            <input type="text" id="searchInput" class="form-control" placeholder="Cari supplier..." onkeyup="searchSupplier()">
+        </div>
+
         <!-- Form Tambah/Edit Supplier -->
         <form id="supplierForm" enctype="multipart/form-data">
             <div class="row g-3 mb-3">
@@ -72,7 +80,12 @@
             <div class="row g-3 mb-3">
                 <div class="col-md-6">
                     <label for="supplierPhoto" class="form-label">Foto</label>
-                    <input type="file" id="supplierPhoto" class="form-control">
+                    <input type="file" id="supplierPhoto" class="form-control" accept="image/*">
+                </div>
+                <div class="col-md-6">
+                    <div id="photoPreview" class="text-center mt-2">
+                        <p>No image selected</p>
+                    </div>
                 </div>
             </div>
             <div class="text-center">
@@ -92,6 +105,7 @@
                         <th>Kontak</th>
                         <th>Email</th>
                         <th>Alamat</th>
+                        <th>Status</th>
                         <th>Aksi</th>
                     </tr>
                 </thead>
@@ -105,6 +119,7 @@
     <script>
         let suppliers = JSON.parse(localStorage.getItem("suppliers")) || [];
 
+        // Load data suppliers ketika halaman dimuat
         document.addEventListener("DOMContentLoaded", function () {
             loadSuppliers();
 
@@ -112,8 +127,8 @@
                 e.preventDefault();
 
                 const supplierPhotoInput = document.getElementById("supplierPhoto");
-                const photo = supplierPhotoInput.files[0] 
-                    ? URL.createObjectURL(supplierPhotoInput.files[0]) 
+                const photo = supplierPhotoInput.files[0]
+                    ? URL.createObjectURL(supplierPhotoInput.files[0])
                     : null;
 
                 const supplier = {
@@ -122,7 +137,8 @@
                     contact: document.getElementById("supplierContact").value,
                     email: document.getElementById("supplierEmail").value,
                     address: document.getElementById("supplierAddress").value,
-                    photo: photo
+                    photo: photo,
+                    status: 'Aktif' // Default status
                 };
 
                 suppliers.push(supplier);
@@ -131,15 +147,30 @@
                 this.reset();
                 Swal.fire("Berhasil!", "Supplier telah disimpan.", "success");
             });
+
+            document.getElementById("supplierPhoto").addEventListener("change", previewImage);
         });
 
+        // Preview foto yang diupload
+        function previewImage() {
+            const file = document.getElementById("supplierPhoto").files[0];
+            const reader = new FileReader();
+            reader.onloadend = function () {
+                document.getElementById("photoPreview").innerHTML = `<img src="${reader.result}" class="profile-pic" />`;
+            }
+            if (file) {
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // Load daftar supplier
         function loadSuppliers() {
             const tbody = document.getElementById("supplierTableBody");
             tbody.innerHTML = "";
 
             suppliers.forEach((supplier, index) => {
-                const photoHTML = supplier.photo 
-                    ? `<img src="${supplier.photo}" class="profile-pic">` 
+                const photoHTML = supplier.photo
+                    ? `<img src="${supplier.photo}" class="profile-pic">`
                     : `<i class="fas fa-building fa-2x text-secondary"></i>`;
 
                 const tr = document.createElement("tr");
@@ -150,6 +181,7 @@
                     <td>${supplier.contact}</td>
                     <td>${supplier.email}</td>
                     <td>${supplier.address}</td>
+                    <td>${supplier.status}</td>
                     <td>
                         <button class="btn btn-warning btn-sm" onclick="editSupplier(${supplier.id})">Edit</button>
                         <button class="btn btn-danger btn-sm" onclick="deleteSupplier(${supplier.id})">Delete</button>
@@ -159,10 +191,12 @@
             });
         }
 
+        // Menyimpan data supplier ke localStorage
         function saveSuppliers() {
             localStorage.setItem("suppliers", JSON.stringify(suppliers));
         }
 
+        // Mengedit supplier
         function editSupplier(id) {
             const supplier = suppliers.find(supplier => supplier.id === id);
             if (supplier) {
@@ -171,13 +205,14 @@
                 document.getElementById("supplierEmail").value = supplier.email;
                 document.getElementById("supplierAddress").value = supplier.address;
 
-                // Remove the supplier from the array before editing
+                // Remove supplier dari array sebelum diedit
                 suppliers = suppliers.filter(supplier => supplier.id !== id);
                 saveSuppliers();
                 loadSuppliers();
             }
         }
 
+        // Menghapus supplier
         function deleteSupplier(id) {
             Swal.fire({
                 title: "Apakah Anda yakin?",
@@ -194,6 +229,42 @@
                     loadSuppliers();
                     Swal.fire("Terhapus!", "Supplier telah dihapus.", "success");
                 }
+            });
+        }
+
+        // Pencarian Supplier
+        function searchSupplier() {
+            const searchTerm = document.getElementById("searchInput").value.toLowerCase();
+            const filteredSuppliers = suppliers.filter(supplier =>
+                supplier.name.toLowerCase().includes(searchTerm) || supplier.email.toLowerCase().includes(searchTerm)
+            );
+            renderSupplierTable(filteredSuppliers);
+        }
+
+        // Render Tabel Supplier
+        function renderSupplierTable(supplierList) {
+            const tbody = document.getElementById("supplierTableBody");
+            tbody.innerHTML = "";
+            supplierList.forEach((supplier, index) => {
+                const photoHTML = supplier.photo
+                    ? `<img src="${supplier.photo}" class="profile-pic">`
+                    : `<i class="fas fa-building fa-2x text-secondary"></i>`;
+
+                const tr = document.createElement("tr");
+                tr.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td>${photoHTML}</td>
+                    <td>${supplier.name}</td>
+                    <td>${supplier.contact}</td>
+                    <td>${supplier.email}</td>
+                    <td>${supplier.address}</td>
+                    <td>${supplier.status}</td>
+                    <td>
+                        <button class="btn btn-warning btn-sm" onclick="editSupplier(${supplier.id})">Edit</button>
+                        <button class="btn btn-danger btn-sm" onclick="deleteSupplier(${supplier.id})">Delete</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
             });
         }
     </script>
