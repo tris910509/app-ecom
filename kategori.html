@@ -41,7 +41,7 @@
     <div class="container mt-4">
         <h2 class="text-center mb-4">Kelola Kategori</h2>
 
-        <!-- Form Tambah Kategori -->
+        <!-- Form Input Kategori -->
         <form id="categoryForm">
             <div class="row g-3 mb-3">
                 <div class="col-md-6">
@@ -50,11 +50,11 @@
                 </div>
             </div>
             <div class="text-center">
-                <button type="submit" class="btn btn-primary">Tambah Kategori</button>
+                <button type="submit" class="btn btn-primary">Simpan Kategori</button>
             </div>
         </form>
 
-        <!-- Tabel Kategori -->
+        <!-- Tabel Daftar Kategori -->
         <div class="mt-5">
             <h4>Daftar Kategori</h4>
             <table class="table table-bordered table-striped">
@@ -62,6 +62,7 @@
                     <tr>
                         <th>No</th>
                         <th>Nama Kategori</th>
+                        <th>ID Kategori</th>
                         <th>Aksi</th>
                     </tr>
                 </thead>
@@ -90,6 +91,7 @@
                 tr.innerHTML = `
                     <td>${index + 1}</td>
                     <td>${category.name}</td>
+                    <td>${category.id}</td>
                     <td>
                         <button class="btn btn-warning btn-sm" onclick="editCategory(${category.id})">Edit</button>
                         <button class="btn btn-danger btn-sm" onclick="deleteCategory(${category.id})">Delete</button>
@@ -102,15 +104,19 @@
         // Menambah kategori baru
         document.getElementById("categoryForm").addEventListener("submit", function (e) {
             e.preventDefault();
-            const categoryName = document.getElementById("categoryName").value;
+            const name = document.getElementById("categoryName").value;
+
+            // ID Unik untuk kategori
+            const categoryId = Date.now(); // Menggunakan timestamp sebagai ID unik
+
             const category = {
-                id: Date.now(),
-                name: categoryName
+                id: categoryId,
+                name: name
             };
             categories.push(category);
             saveCategories();
             loadCategories();
-            document.getElementById("categoryName").value = "";
+            document.getElementById("categoryForm").reset();
             Swal.fire("Sukses", "Kategori telah ditambahkan!", "success");
         });
 
@@ -138,6 +144,7 @@
             const category = categories.find(c => c.id === id);
             if (category) {
                 document.getElementById("categoryName").value = category.name;
+
                 // Hapus kategori dan beri ID untuk memperbarui
                 categories = categories.filter(c => c.id !== id);
                 saveCategories();
