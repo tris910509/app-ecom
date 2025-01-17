@@ -245,6 +245,79 @@
             });
         }
 
+        
+// Fungsi untuk mengonfirmasi pembayaran
+function confirmPayment() {
+    if (cart.length === 0) {
+        Swal.fire("Gagal", "Keranjang masih kosong.", "error");
+        return;
+    }
+
+    const customerId = document.getElementById("customerId").value;
+    const totalAmount = cart.reduce((sum, item) => sum + item.total, 0);
+    const paymentMethod = document.getElementById("paymentMethod").value;
+    const transactionId = Date.now(); // ID Transaksi Unik
+
+    const transaction = {
+        id: transactionId,
+        customerId: customerId,
+        totalAmount: totalAmount,
+        paymentMethod: paymentMethod,
+        status: 'Pembayaran Belum Dikonfirmasi'
+    };
+
+    transactions.push(transaction);
+    localStorage.setItem("transactions", JSON.stringify(transactions));
+
+    // Mengosongkan keranjang setelah transaksi
+    cart = [];
+    updateCartTable();
+
+    // Memuat laporan transaksi setelah pembayaran
+    loadTransactionReport();
+
+    Swal.fire("Sukses", "Transaksi berhasil! Menunggu konfirmasi pembayaran.", "success");
+}
+
+// Fungsi untuk mengonfirmasi status pembayaran transaksi
+function confirmTransactionPayment(transactionId) {
+    const transaction = transactions.find(t => t.id === transactionId);
+    
+    if (transaction) {
+        transaction.status = 'Sudah Dibayar';  // Mengubah status pembayaran
+        localStorage.setItem("transactions", JSON.stringify(transactions));
+        loadTransactionReport(); // Memuat ulang laporan transaksi
+        Swal.fire("Sukses", "Pembayaran berhasil dikonfirmasi!", "success");
+    } else {
+        Swal.fire("Gagal", "Transaksi tidak ditemukan.", "error");
+    }
+}
+
+// Memuat laporan transaksi yang sudah dilakukan
+function loadTransactionReport() {
+    const tbody = document.getElementById("transactionReportBody");
+    tbody.innerHTML = "";
+
+    transactions.forEach((transaction, index) => {
+        const customer = customers.find(c => c.id === transaction.customerId);
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+            <td>${index + 1}</td>
+            <td>${transaction.id}</td>
+            <td>${customer ? customer.name : "Tidak Diketahui"}</td>
+            <td>${transaction.totalAmount}</td>
+            <td>${transaction.status}</td>
+            <td>
+                ${transaction.status === 'Pembayaran Belum Dikonfirmasi' ? 
+                    `<button class="btn btn-success btn-sm" onclick="confirmTransactionPayment(${transaction.id})">Konfirmasi Pembayaran</button>` : 
+                    'Sudah Dibayar'
+                }
+            </td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
+
         // Memulai aplikasi
         loadCustomers();
         loadProducts();
