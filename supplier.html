@@ -14,15 +14,6 @@
         .navbar-brand {
             font-weight: bold;
         }
-        .profile-pic {
-            width: 50px;
-            height: 50px;
-            object-fit: cover;
-            border-radius: 50%;
-        }
-        .search-bar {
-            margin-bottom: 15px;
-        }
     </style>
 </head>
 <body>
@@ -50,62 +41,45 @@
     <div class="container mt-4">
         <h2 class="text-center mb-4">Kelola Supplier</h2>
 
-        <!-- Search Bar -->
-        <div class="search-bar">
-            <input type="text" id="searchInput" class="form-control" placeholder="Cari supplier..." onkeyup="searchSupplier()">
-        </div>
-
-        <!-- Form Tambah/Edit Supplier -->
-        <form id="supplierForm" enctype="multipart/form-data">
+        <!-- Form Input Supplier -->
+        <form id="supplierForm">
             <div class="row g-3 mb-3">
                 <div class="col-md-6">
                     <label for="supplierName" class="form-label">Nama Supplier</label>
                     <input type="text" id="supplierName" class="form-control" required>
                 </div>
                 <div class="col-md-6">
-                    <label for="supplierContact" class="form-label">Kontak Supplier</label>
-                    <input type="text" id="supplierContact" class="form-control" required>
+                    <label for="contact" class="form-label">Kontak</label>
+                    <input type="text" id="contact" class="form-control" required>
                 </div>
             </div>
             <div class="row g-3 mb-3">
                 <div class="col-md-6">
-                    <label for="supplierEmail" class="form-label">Email Supplier</label>
-                    <input type="email" id="supplierEmail" class="form-control" required>
+                    <label for="email" class="form-label">Email</label>
+                    <input type="email" id="email" class="form-control" required>
                 </div>
                 <div class="col-md-6">
-                    <label for="supplierAddress" class="form-label">Alamat Supplier</label>
-                    <input type="text" id="supplierAddress" class="form-control" required>
-                </div>
-            </div>
-            <div class="row g-3 mb-3">
-                <div class="col-md-6">
-                    <label for="supplierPhoto" class="form-label">Foto</label>
-                    <input type="file" id="supplierPhoto" class="form-control" accept="image/*">
-                </div>
-                <div class="col-md-6">
-                    <div id="photoPreview" class="text-center mt-2">
-                        <p>No image selected</p>
-                    </div>
+                    <label for="address" class="form-label">Alamat</label>
+                    <input type="text" id="address" class="form-control" required>
                 </div>
             </div>
             <div class="text-center">
-                <button type="submit" class="btn btn-primary">Simpan</button>
+                <button type="submit" class="btn btn-primary">Simpan Supplier</button>
             </div>
         </form>
 
-        <!-- Tabel Supplier -->
+        <!-- Tabel Daftar Supplier -->
         <div class="mt-5">
             <h4>Daftar Supplier</h4>
             <table class="table table-bordered table-striped">
                 <thead class="table-primary">
                     <tr>
                         <th>No</th>
-                        <th>Foto</th>
                         <th>Nama Supplier</th>
                         <th>Kontak</th>
                         <th>Email</th>
                         <th>Alamat</th>
-                        <th>Status</th>
+                        <th>ID Supplier</th>
                         <th>Aksi</th>
                     </tr>
                 </thead>
@@ -119,69 +93,25 @@
     <script>
         let suppliers = JSON.parse(localStorage.getItem("suppliers")) || [];
 
-        // Load data suppliers ketika halaman dimuat
-        document.addEventListener("DOMContentLoaded", function () {
-            loadSuppliers();
-
-            document.getElementById("supplierForm").addEventListener("submit", function (e) {
-                e.preventDefault();
-
-                const supplierPhotoInput = document.getElementById("supplierPhoto");
-                const photo = supplierPhotoInput.files[0]
-                    ? URL.createObjectURL(supplierPhotoInput.files[0])
-                    : null;
-
-                const supplier = {
-                    id: Date.now(),
-                    name: document.getElementById("supplierName").value,
-                    contact: document.getElementById("supplierContact").value,
-                    email: document.getElementById("supplierEmail").value,
-                    address: document.getElementById("supplierAddress").value,
-                    photo: photo,
-                    status: 'Aktif' // Default status
-                };
-
-                suppliers.push(supplier);
-                saveSuppliers();
-                loadSuppliers();
-                this.reset();
-                Swal.fire("Berhasil!", "Supplier telah disimpan.", "success");
-            });
-
-            document.getElementById("supplierPhoto").addEventListener("change", previewImage);
-        });
-
-        // Preview foto yang diupload
-        function previewImage() {
-            const file = document.getElementById("supplierPhoto").files[0];
-            const reader = new FileReader();
-            reader.onloadend = function () {
-                document.getElementById("photoPreview").innerHTML = `<img src="${reader.result}" class="profile-pic" />`;
-            }
-            if (file) {
-                reader.readAsDataURL(file);
-            }
+        // Menyimpan supplier ke localStorage
+        function saveSuppliers() {
+            localStorage.setItem("suppliers", JSON.stringify(suppliers));
         }
 
-        // Load daftar supplier
+        // Menampilkan tabel supplier
         function loadSuppliers() {
             const tbody = document.getElementById("supplierTableBody");
             tbody.innerHTML = "";
 
             suppliers.forEach((supplier, index) => {
-                const photoHTML = supplier.photo
-                    ? `<img src="${supplier.photo}" class="profile-pic">`
-                    : `<i class="fas fa-building fa-2x text-secondary"></i>`;
-
                 const tr = document.createElement("tr");
                 tr.innerHTML = `
                     <td>${index + 1}</td>
-                    <td>${photoHTML}</td>
                     <td>${supplier.name}</td>
                     <td>${supplier.contact}</td>
                     <td>${supplier.email}</td>
                     <td>${supplier.address}</td>
-                    <td>${supplier.status}</td>
+                    <td>${supplier.id}</td>
                     <td>
                         <button class="btn btn-warning btn-sm" onclick="editSupplier(${supplier.id})">Edit</button>
                         <button class="btn btn-danger btn-sm" onclick="deleteSupplier(${supplier.id})">Delete</button>
@@ -191,37 +121,40 @@
             });
         }
 
-        // Menyimpan data supplier ke localStorage
-        function saveSuppliers() {
-            localStorage.setItem("suppliers", JSON.stringify(suppliers));
-        }
+        // Menambah supplier baru
+        document.getElementById("supplierForm").addEventListener("submit", function (e) {
+            e.preventDefault();
+            const name = document.getElementById("supplierName").value;
+            const contact = document.getElementById("contact").value;
+            const email = document.getElementById("email").value;
+            const address = document.getElementById("address").value;
 
-        // Mengedit supplier
-        function editSupplier(id) {
-            const supplier = suppliers.find(supplier => supplier.id === id);
-            if (supplier) {
-                document.getElementById("supplierName").value = supplier.name;
-                document.getElementById("supplierContact").value = supplier.contact;
-                document.getElementById("supplierEmail").value = supplier.email;
-                document.getElementById("supplierAddress").value = supplier.address;
+            // ID Unik untuk supplier
+            const supplierId = Date.now(); // Menggunakan timestamp sebagai ID unik
 
-                // Remove supplier dari array sebelum diedit
-                suppliers = suppliers.filter(supplier => supplier.id !== id);
-                saveSuppliers();
-                loadSuppliers();
-            }
-        }
+            const supplier = {
+                id: supplierId,
+                name: name,
+                contact: contact,
+                email: email,
+                address: address
+            };
+            suppliers.push(supplier);
+            saveSuppliers();
+            loadSuppliers();
+            document.getElementById("supplierForm").reset();
+            Swal.fire("Sukses", "Supplier telah ditambahkan!", "success");
+        });
 
         // Menghapus supplier
         function deleteSupplier(id) {
             Swal.fire({
-                title: "Apakah Anda yakin?",
-                text: "Supplier ini akan dihapus!",
-                icon: "warning",
+                title: 'Hapus Supplier?',
+                text: "Data ini tidak dapat dikembalikan!",
+                icon: 'warning',
                 showCancelButton: true,
-                confirmButtonColor: "#3085d6",
-                cancelButtonColor: "#d33",
-                confirmButtonText: "Ya, hapus supplier!"
+                confirmButtonText: 'Ya, hapus supplier!',
+                cancelButtonText: 'Batal'
             }).then((result) => {
                 if (result.isConfirmed) {
                     suppliers = suppliers.filter(supplier => supplier.id !== id);
@@ -232,41 +165,24 @@
             });
         }
 
-        // Pencarian Supplier
-        function searchSupplier() {
-            const searchTerm = document.getElementById("searchInput").value.toLowerCase();
-            const filteredSuppliers = suppliers.filter(supplier =>
-                supplier.name.toLowerCase().includes(searchTerm) || supplier.email.toLowerCase().includes(searchTerm)
-            );
-            renderSupplierTable(filteredSuppliers);
+        // Edit supplier
+        function editSupplier(id) {
+            const supplier = suppliers.find(s => s.id === id);
+            if (supplier) {
+                document.getElementById("supplierName").value = supplier.name;
+                document.getElementById("contact").value = supplier.contact;
+                document.getElementById("email").value = supplier.email;
+                document.getElementById("address").value = supplier.address;
+
+                // Hapus supplier dan beri ID untuk memperbarui
+                suppliers = suppliers.filter(s => s.id !== id);
+                saveSuppliers();
+                loadSuppliers();
+            }
         }
 
-        // Render Tabel Supplier
-        function renderSupplierTable(supplierList) {
-            const tbody = document.getElementById("supplierTableBody");
-            tbody.innerHTML = "";
-            supplierList.forEach((supplier, index) => {
-                const photoHTML = supplier.photo
-                    ? `<img src="${supplier.photo}" class="profile-pic">`
-                    : `<i class="fas fa-building fa-2x text-secondary"></i>`;
-
-                const tr = document.createElement("tr");
-                tr.innerHTML = `
-                    <td>${index + 1}</td>
-                    <td>${photoHTML}</td>
-                    <td>${supplier.name}</td>
-                    <td>${supplier.contact}</td>
-                    <td>${supplier.email}</td>
-                    <td>${supplier.address}</td>
-                    <td>${supplier.status}</td>
-                    <td>
-                        <button class="btn btn-warning btn-sm" onclick="editSupplier(${supplier.id})">Edit</button>
-                        <button class="btn btn-danger btn-sm" onclick="deleteSupplier(${supplier.id})">Delete</button>
-                    </td>
-                `;
-                tbody.appendChild(tr);
-            });
-        }
+        // Memulai fungsi
+        loadSuppliers();
     </script>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
