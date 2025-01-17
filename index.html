@@ -30,9 +30,9 @@
             const email = document.getElementById("email").value;
             const password = document.getElementById("password").value;
             const users = JSON.parse(localStorage.getItem("users")) || [
-                { id: "user-1", name: "Admin", email: "admin@example.com", password: "adminpass", role: "admin", status: "aktif" },
-    { id: "user-2", name: "Kasir", email: "kasir@example.com", password: "kasirpass", role: "kasir", status: "aktif" },
-    { id: "user-3", name: "Pelanggan", email: "pelanggan@example.com", password: "pelangganpass", role: "pelanggan", status: "aktif" }
+                { id: "user-1", name: "Admin", email: "admin@gmail.com", password: "adminpass", role: "admin", status: "aktif" },
+    { id: "user-2", name: "Kasir", email: "kasir@gmail.com", password: "kasirpass", role: "kasir", status: "aktif" },
+    { id: "user-3", name: "Pelanggan", email: "pelanggan@gmail.com", password: "pelangganpass", role: "pelanggan", status: "aktif" }
 ];
 
             const user = users.find(u => u.email === email && u.password === password);
