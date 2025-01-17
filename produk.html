@@ -14,18 +14,6 @@
         .navbar-brand {
             font-weight: bold;
         }
-        .product-img {
-            width: 100px;
-            height: 100px;
-            object-fit: cover;
-        }
-        .search-bar {
-            margin-bottom: 15px;
-        }
-        .card-body {
-            display: flex;
-            flex-direction: column;
-        }
     </style>
 </head>
 <body>
@@ -53,101 +41,47 @@
     <div class="container mt-4">
         <h2 class="text-center mb-4">Kelola Produk</h2>
 
-        <!-- Search Bar -->
-        <div class="search-bar mb-3">
-            <input type="text" id="searchInput" class="form-control" placeholder="Cari produk..." onkeyup="searchProduct()">
-        </div>
-
-        <!-- Filter Kategori -->
-        <div class="mb-3">
-            <select id="categoryFilter" class="form-control" onchange="filterByCategory()">
-                <option value="">Semua Kategori</option>
-                <option value="Elektronik">Elektronik</option>
-                <option value="Pakaian">Pakaian</option>
-                <option value="Makanan">Makanan</option>
-            </select>
-        </div>
-
-        <!-- Form Tambah/Edit Produk -->
-        <form id="productForm" enctype="multipart/form-data">
+        <!-- Form Input Produk -->
+        <form id="productForm">
             <div class="row g-3 mb-3">
                 <div class="col-md-6">
                     <label for="productName" class="form-label">Nama Produk</label>
                     <input type="text" id="productName" class="form-control" required>
                 </div>
                 <div class="col-md-6">
-                    <label for="productPrice" class="form-label">Harga Produk</label>
-                    <input type="number" id="productPrice" class="form-control" required>
-                </div>
-            </div>
-
-            <div class="row g-3 mb-3">
-                <div class="col-md-6">
-                    <label for="productCategory" class="form-label">Kategori Produk</label>
-                    <select id="productCategory" class="form-control" required>
+                    <label for="categoryId" class="form-label">Kategori</label>
+                    <select id="categoryId" class="form-select" required>
                         <option value="">Pilih Kategori</option>
-                        <option value="Elektronik">Elektronik</option>
-                        <option value="Pakaian">Pakaian</option>
-                        <option value="Makanan">Makanan</option>
-                    </select>
-                </div>
-                <div class="col-md-6">
-                    <label for="productStatus" class="form-label">Status Produk</label>
-                    <select id="productStatus" class="form-control" required>
-                        <option value="Aktif">Aktif</option>
-                        <option value="Non-Aktif">Non-Aktif</option>
                     </select>
                 </div>
             </div>
-
-            <div class="mb-3">
-                <label for="productDescription" class="form-label">Deskripsi Produk</label>
-                <textarea id="productDescription" class="form-control" rows="3" required></textarea>
-            </div>
-
-            <!-- Stok Produk -->
-            <div class="mb-3">
-                <label for="productStock" class="form-label">Stok Produk</label>
-                <input type="number" id="productStock" class="form-control" min="0" required>
-            </div>
-
-            <!-- Harga Diskon -->
-            <div class="mb-3">
-                <label for="productDiscount" class="form-label">Harga Diskon (%)</label>
-                <input type="number" id="productDiscount" class="form-control" min="0" max="100">
-            </div>
-
-            <!-- Foto Produk -->
             <div class="row g-3 mb-3">
                 <div class="col-md-6">
-                    <label for="productImage" class="form-label">Foto Produk</label>
-                    <input type="file" id="productImage" class="form-control" accept="image/*">
+                    <label for="price" class="form-label">Harga</label>
+                    <input type="number" id="price" class="form-control" required>
                 </div>
                 <div class="col-md-6">
-                    <div id="imagePreview" class="text-center mt-2">
-                        <p>No image selected</p>
-                    </div>
+                    <label for="stock" class="form-label">Stok</label>
+                    <input type="number" id="stock" class="form-control" required>
                 </div>
             </div>
-
             <div class="text-center">
-                <button type="submit" class="btn btn-primary">Simpan</button>
+                <button type="submit" class="btn btn-primary">Simpan Produk</button>
             </div>
         </form>
 
-        <!-- Tabel Produk -->
+        <!-- Tabel Daftar Produk -->
         <div class="mt-5">
             <h4>Daftar Produk</h4>
             <table class="table table-bordered table-striped">
                 <thead class="table-primary">
                     <tr>
                         <th>No</th>
-                        <th>Foto</th>
                         <th>Nama Produk</th>
                         <th>Kategori</th>
                         <th>Harga</th>
                         <th>Stok</th>
-                        <th>Status</th>
+                        <th>ID Produk</th>
                         <th>Aksi</th>
                     </tr>
                 </thead>
@@ -159,50 +93,74 @@
     </div>
 
     <script>
+        let categories = JSON.parse(localStorage.getItem("categories")) || [];
         let products = JSON.parse(localStorage.getItem("products")) || [];
-
-        // Load data produk ketika halaman dimuat
-        document.addEventListener("DOMContentLoaded", function () {
-            loadProducts();
-
-            document.getElementById("productForm").addEventListener("submit", function (e) {
-                e.preventDefault();
-
-                // Validasi input
-                if (!document.getElementById("productName").value || !document.getElementById("productPrice").value || !document.getElementById("productStock").value) {
-                    Swal.fire("Error", "Semua kolom wajib diisi!", "error");
-                    return;
-                }
-
-                const productImageInput = document.getElementById("productImage");
-                const image = productImageInput.files[0]
-                    ? URL.createObjectURL(productImageInput.files[0])
-                    : null;
-
-                const product = {
-                    id: Date.now(),
-                    name: document.getElementById("productName").value,
-                    price: parseFloat(document.getElementById("productPrice").value),
-                    stock: parseInt(document.getElementById("productStock").value),
-                    discount: parseFloat(document.getElementById("productDiscount").value || 0),
-                    category: document.getElementById("productCategory").value,
-                    description: document.getElementById("productDescription").value,
-                    status: document.getElementById("productStatus").value,
-                    image: image,
-                };
-
-                products.push(product);
-                saveProducts();
-                loadProducts();
-
-                Swal.fire("Sukses", "Produk telah disimpan!", "success");
-            });
-        });
 
         // Menyimpan produk ke localStorage
         function saveProducts() {
             localStorage.setItem("products", JSON.stringify(products));
         }
+
+        // Menampilkan tabel produk
+        function loadProducts() {
+            const tbody = document.getElementById("productTableBody");
+            tbody.innerHTML = "";
+
+            products.forEach((product, index) => {
+                const tr = document.createElement("tr");
+                const category = categories.find(cat => cat.id === product.categoryId);
+                tr.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td>${product.name}</td>
+                    <td>${category ? category.name : "Tidak Diketahui"}</td>
+                    <td>${product.price}</td>
+                    <td>${product.stock}</td>
+                    <td>${product.id}</td>
+                    <td>
+                        <button class="btn btn-warning btn-sm" onclick="editProduct(${product.id})">Edit</button>
+                        <button class="btn btn-danger btn-sm" onclick="deleteProduct(${product.id})">Delete</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // Menampilkan kategori dalam form select
+        function loadCategories() {
+            const categorySelect = document.getElementById("categoryId");
+            categories.forEach(cat => {
+                const option = document.createElement("option");
+                option.value = cat.id;
+                option.textContent = cat.name;
+                categorySelect.appendChild(option);
+            });
+        }
+
+        // Menambah produk baru
+        document.getElementById("productForm").addEventListener("submit", function (e) {
+            e.preventDefault();
+            const name = document.getElementById("productName").value;
+            const categoryId = document.getElementById("categoryId").value;
+            const price = document.getElementById("price").value;
+            const stock = document.getElementById("stock").value;
+
+            // ID Unik untuk produk
+            const productId = Date.now(); // Menggunakan timestamp sebagai ID unik
+
+            const product = {
+                id: productId,
+                name: name,
+                categoryId: categoryId,
+                price: price,
+                stock: stock
+            };
+
+            products.push(product);
+            saveProducts();
+            loadProducts();
+            document.getElementById("productForm").reset();
+            Swal.fire("Sukses", "Produk telah ditambahkan!", "success");
+        });
 
         // Menghapus produk
         function deleteProduct(id) {
@@ -223,76 +181,25 @@
             });
         }
 
-        // Menampilkan tabel produk
-        function loadProducts() {
-            const tbody = document.getElementById("productTableBody");
-            tbody.innerHTML = "";
+        // Edit produk
+        function editProduct(id) {
+            const product = products.find(p => p.id === id);
+            if (product) {
+                document.getElementById("productName").value = product.name;
+                document.getElementById("categoryId").value = product.categoryId;
+                document.getElementById("price").value = product.price;
+                document.getElementById("stock").value = product.stock;
 
-            products.forEach((product, index) => {
-                const imageHTML = product.image
-                    ? `<img src="${product.image}" class="product-img">`
-                    : `<i class="fas fa-box fa-2x text-secondary"></i>`;
-
-                const tr = document.createElement("tr");
-                tr.innerHTML = `
-                    <td>${index + 1}</td>
-                    <td>${imageHTML}</td>
-                    <td>${product.name}</td>
-                    <td>${product.category}</td>
-                    <td>${product.price.toLocaleString()}</td>
-                    <td>${product.stock}</td>
-                    <td>${product.status}</td>
-                    <td>
-                        <button class="btn btn-warning btn-sm" onclick="editProduct(${product.id})">Edit</button>
-                        <button class="btn btn-danger btn-sm" onclick="deleteProduct(${product.id})">Delete</button>
-                    </td>
-                `;
-                tbody.appendChild(tr);
-            });
+                // Hapus produk dan beri ID untuk memperbarui
+                products = products.filter(p => p.id !== id);
+                saveProducts();
+                loadProducts();
+            }
         }
 
-        // Pencarian produk
-        function searchProduct() {
-            const searchTerm = document.getElementById("searchInput").value.toLowerCase();
-            const filteredProducts = products.filter(product =>
-                product.name.toLowerCase().includes(searchTerm) || product.category.toLowerCase().includes(searchTerm)
-            );
-            renderProductTable(filteredProducts);
-        }
-
-        // Filter berdasarkan kategori
-        function filterByCategory() {
-            const category = document.getElementById("categoryFilter").value;
-            const filteredProducts = category ? products.filter(product => product.category === category) : products;
-            renderProductTable(filteredProducts);
-        }
-
-        // Render tabel produk
-        function renderProductTable(productList) {
-            const tbody = document.getElementById("productTableBody");
-            tbody.innerHTML = "";
-            productList.forEach((product, index) => {
-                const imageHTML = product.image
-                    ? `<img src="${product.image}" class="product-img">`
-                    : `<i class="fas fa-box fa-2x text-secondary"></i>`;
-                
-                const tr = document.createElement("tr");
-                tr.innerHTML = `
-                    <td>${index + 1}</td>
-                    <td>${imageHTML}</td>
-                    <td>${product.name}</td>
-                    <td>${product.category}</td>
-                    <td>${product.price.toLocaleString()}</td>
-                    <td>${product.status}</td>
-                    <td>
-                        <button class="btn btn-warning btn-sm" onclick="editProduct(${product.id})">Edit</button>
-                        <button class="btn btn-danger btn-sm" onclick="deleteProduct(${product.id})">Delete</button>
-                    </td>
-                `;
-                tbody.appendChild(tr);
-            });
-        }
-
+        // Memulai fungsi
+        loadCategories();
+        loadProducts();
     </script>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
