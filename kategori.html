@@ -41,23 +41,16 @@
     <div class="container mt-4">
         <h2 class="text-center mb-4">Kelola Kategori</h2>
 
-        <!-- Form Tambah/Edit Kategori -->
+        <!-- Form Tambah Kategori -->
         <form id="categoryForm">
             <div class="row g-3 mb-3">
                 <div class="col-md-6">
                     <label for="categoryName" class="form-label">Nama Kategori</label>
                     <input type="text" id="categoryName" class="form-control" required>
                 </div>
-                <div class="col-md-6">
-                    <label for="categoryStatus" class="form-label">Status</label>
-                    <select id="categoryStatus" class="form-select" required>
-                        <option value="aktif">Aktif</option>
-                        <option value="nonaktif">Nonaktif</option>
-                    </select>
-                </div>
             </div>
             <div class="text-center">
-                <button type="submit" class="btn btn-primary">Simpan</button>
+                <button type="submit" class="btn btn-primary">Tambah Kategori</button>
             </div>
         </form>
 
@@ -69,7 +62,6 @@
                     <tr>
                         <th>No</th>
                         <th>Nama Kategori</th>
-                        <th>Status</th>
                         <th>Aksi</th>
                     </tr>
                 </thead>
@@ -83,26 +75,12 @@
     <script>
         let categories = JSON.parse(localStorage.getItem("categories")) || [];
 
-        document.addEventListener("DOMContentLoaded", function () {
-            loadCategories();
+        // Menyimpan kategori ke localStorage
+        function saveCategories() {
+            localStorage.setItem("categories", JSON.stringify(categories));
+        }
 
-            document.getElementById("categoryForm").addEventListener("submit", function (e) {
-                e.preventDefault();
-
-                const category = {
-                    id: Date.now(),
-                    name: document.getElementById("categoryName").value,
-                    status: document.getElementById("categoryStatus").value
-                };
-
-                categories.push(category);
-                saveCategories();
-                loadCategories();
-                this.reset();
-                Swal.fire("Berhasil!", "Kategori telah disimpan.", "success");
-            });
-        });
-
+        // Menampilkan tabel kategori
         function loadCategories() {
             const tbody = document.getElementById("categoryTableBody");
             tbody.innerHTML = "";
@@ -112,7 +90,6 @@
                 tr.innerHTML = `
                     <td>${index + 1}</td>
                     <td>${category.name}</td>
-                    <td>${category.status}</td>
                     <td>
                         <button class="btn btn-warning btn-sm" onclick="editCategory(${category.id})">Edit</button>
                         <button class="btn btn-danger btn-sm" onclick="deleteCategory(${category.id})">Delete</button>
@@ -122,32 +99,30 @@
             });
         }
 
-        function saveCategories() {
-            localStorage.setItem("categories", JSON.stringify(categories));
-        }
+        // Menambah kategori baru
+        document.getElementById("categoryForm").addEventListener("submit", function (e) {
+            e.preventDefault();
+            const categoryName = document.getElementById("categoryName").value;
+            const category = {
+                id: Date.now(),
+                name: categoryName
+            };
+            categories.push(category);
+            saveCategories();
+            loadCategories();
+            document.getElementById("categoryName").value = "";
+            Swal.fire("Sukses", "Kategori telah ditambahkan!", "success");
+        });
 
-        function editCategory(id) {
-            const category = categories.find(category => category.id === id);
-            if (category) {
-                document.getElementById("categoryName").value = category.name;
-                document.getElementById("categoryStatus").value = category.status;
-
-                // Remove the category from the array before editing
-                categories = categories.filter(category => category.id !== id);
-                saveCategories();
-                loadCategories();
-            }
-        }
-
+        // Menghapus kategori
         function deleteCategory(id) {
             Swal.fire({
-                title: "Apakah Anda yakin?",
-                text: "Kategori ini akan dihapus!",
-                icon: "warning",
+                title: 'Hapus Kategori?',
+                text: "Data ini tidak dapat dikembalikan!",
+                icon: 'warning',
                 showCancelButton: true,
-                confirmButtonColor: "#3085d6",
-                cancelButtonColor: "#d33",
-                confirmButtonText: "Ya, hapus kategori!"
+                confirmButtonText: 'Ya, hapus kategori!',
+                cancelButtonText: 'Batal'
             }).then((result) => {
                 if (result.isConfirmed) {
                     categories = categories.filter(category => category.id !== id);
@@ -157,6 +132,21 @@
                 }
             });
         }
+
+        // Edit kategori
+        function editCategory(id) {
+            const category = categories.find(c => c.id === id);
+            if (category) {
+                document.getElementById("categoryName").value = category.name;
+                // Hapus kategori dan beri ID untuk memperbarui
+                categories = categories.filter(c => c.id !== id);
+                saveCategories();
+                loadCategories();
+            }
+        }
+
+        // Memulai fungsi
+        loadCategories();
     </script>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
