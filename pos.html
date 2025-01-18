@@ -47,12 +47,66 @@
         <!-- Form Transaksi POS -->
         <form id="posForm">
             <div class="row g-3 mb-3">
-                <div class="col-md-6">
-                    <label for="customerId" class="form-label">Pelanggan</label>
-                    <select id="customerId" class="form-select" required>
-                        <option value="">Pilih Pelanggan</option>
-                    </select>
-                </div>
+                <!-- Pilih Role -->
+    <div class="mb-3">
+        <label for="role" class="form-label">Pilih Role Pelanggan</label>
+        <select id="role" class="form-select" onchange="handleRoleChange()">
+            <option value="">-- Pilih Role --</option>
+            <option value="Umum">Umum</option>
+            <option value="PelSem">PelSem</option>
+            <option value="PelMem">PelMem</option>
+        </select>
+    </div>
+
+    <!-- Form untuk Role Umum -->
+    <div id="formUmum" class="d-none">
+        <h5>Data Pelanggan (Umum)</h5>
+        <div class="mb-3">
+            <label for="name" class="form-label">Nama Pelanggan</label>
+            <input type="text" id="name" class="form-control" placeholder="Masukkan nama pelanggan">
+        </div>
+        <div class="mb-3">
+            <label for="contact" class="form-label">Kontak</label>
+            <input type="text" id="contact" class="form-control" placeholder="Masukkan kontak pelanggan">
+        </div>
+        <div class="mb-3">
+            <label for="email" class="form-label">Email</label>
+            <input type="email" id="email" class="form-control" placeholder="Masukkan email pelanggan">
+        </div>
+        <div class="mb-3">
+            <label for="address" class="form-label">Alamat</label>
+            <input type="text" id="address" class="form-control" placeholder="Masukkan alamat pelanggan">
+        </div>
+    </div>
+
+    <!-- Dropdown untuk Role PelSem dan PelMem -->
+    <div id="formPelSemPelMem" class="d-none">
+        <h5>Pilih Pelanggan Terdaftar</h5>
+        <select id="registeredCustomers" class="form-select">
+            <option value="">-- Pilih Pelanggan --</option>
+        </select>
+    </div>
+
+    <!-- Tombol Simpan -->
+    <button class="btn btn-primary mt-3" onclick="saveCustomer()">Simpan</button>
+
+    <!-- Tabel Pelanggan -->
+    <h5 class="mt-4">Daftar Pelanggan</h5>
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>No</th>
+                <th>ID Pelanggan</th>
+                <th>Nama</th>
+                <th>Kontak</th>
+                <th>Email</th>
+                <th>Alamat</th>
+                <th>Role</th>
+                <th>Aksi</th>
+            </tr>
+        </thead>
+        <tbody id="customerTableBody"></tbody>
+    </table>
                 <div class="col-md-6">
                     <label for="productId" class="form-label">Produk</label>
                     <select id="productId" class="form-select" required>
@@ -146,37 +200,40 @@ function handleRoleChange() {
     } else if (role === "PelSem" || role === "PelMem") {
         formUmum.classList.add("d-none");
         formPelSemPelMem.classList.remove("d-none");
-        loadCustomersDropdown(role);
+        loadRegisteredCustomers(role);
     } else {
         formUmum.classList.add("d-none");
         formPelSemPelMem.classList.add("d-none");
     }
 }
 
-// Memuat data pelanggan ke dropdown
-function loadCustomersDropdown(role) {
-    const customerDropdown = document.getElementById("customerDropdown");
-    customerDropdown.innerHTML = '<option value="">-- Pilih Pelanggan --</option>';
+//Memuat Pelanggan Terdaftar ke Dropdown
+   function loadRegisteredCustomers(role) {
+    const dropdown = document.getElementById("registeredCustomers");
+    dropdown.innerHTML = '<option value="">-- Pilih Pelanggan --</option>';
 
-    const filteredCustomers = customers.filter(customer => customer.role === role);
-
-    filteredCustomers.forEach(customer => {
+    customers.filter(c => c.role === role).forEach(customer => {
         const option = document.createElement("option");
         option.value = customer.id;
         option.textContent = `${customer.name} (${customer.id})`;
-        customerDropdown.appendChild(option);
+        dropdown.appendChild(option);
     });
 }
 
-// Menyimpan data pelanggan
-function saveCustomer() {
+  // Menyimpan Pelanggan Baru     
+     function saveCustomer() {
     const role = document.getElementById("role").value;
 
+    if (!role) {
+        Swal.fire("Error", "Pilih role terlebih dahulu.", "error");
+        return;
+    }
+
     if (role === "Umum") {
-        const name = document.getElementById("generalName").value;
-        const contact = document.getElementById("generalContact").value;
-        const email = document.getElementById("generalEmail").value;
-        const address = document.getElementById("generalAddress").value;
+        const name = document.getElementById("name").value;
+        const contact = document.getElementById("contact").value;
+        const email = document.getElementById("email").value;
+        const address = document.getElementById("address").value;
 
         if (!name) {
             Swal.fire("Error", "Nama pelanggan wajib diisi.", "error");
@@ -184,7 +241,7 @@ function saveCustomer() {
         }
 
         const newCustomer = {
-            id: Date.now(),
+            id: `C${Date.now()}`,
             name,
             contact,
             email,
@@ -193,22 +250,21 @@ function saveCustomer() {
         };
 
         customers.push(newCustomer);
-        localStorage.setItem("customers", JSON.stringify(customers));
+        saveToLocalStorage();
         Swal.fire("Sukses", "Data pelanggan berhasil disimpan.", "success");
+        displayCustomers();
     } else if (role === "PelSem" || role === "PelMem") {
-        const selectedCustomerId = document.getElementById("customerDropdown").value;
+        const selectedId = document.getElementById("registeredCustomers").value;
 
-        if (!selectedCustomerId) {
-            Swal.fire("Error", "Pilih pelanggan terlebih dahulu.", "error");
+        if (!selectedId) {
+            Swal.fire("Error", "Pilih pelanggan dari daftar.", "error");
             return;
         }
 
-        const selectedCustomer = customers.find(customer => customer.id == selectedCustomerId);
-        Swal.fire("Sukses", `Pelanggan ${selectedCustomer.name} berhasil dipilih.`, "success");
-    } else {
-        Swal.fire("Error", "Pilih role terlebih dahulu.", "error");
+        Swal.fire("Sukses", "Pelanggan terdaftar berhasil dipilih.", "success");
     }
 }
+
 //======================
 
         // Menampilkan pelanggan pada form select
