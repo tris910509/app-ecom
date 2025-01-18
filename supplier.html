@@ -1,72 +1,45 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kelola Supplier</title>
+    <title>Halaman Supplier</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
-    <style>
-        body {
-            font-family: 'Arial', sans-serif;
-        }
-        .navbar-brand {
-            font-weight: bold;
-        }
-    </style>
 </head>
 <body>
-    <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-        <div class="container">
-            <a class="navbar-brand" href="#">Supplier</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" href="dashboard.html">Dashboard</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#" onclick="logout()">Logout</a>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </nav>
-
-    <!-- Main Content -->
     <div class="container mt-4">
-        <h2 class="text-center mb-4">Kelola Supplier</h2>
-
-        <!-- Form Input Supplier -->
-        <form id="supplierForm">
-            <div class="row g-3 mb-3">
-                <div class="col-md-6">
+        <h2>Halaman Supplier</h2>
+        
+        <!-- Formulir Input Supplier -->
+        <div class="mt-4">
+            <h4>Tambah/Edit Supplier</h4>
+            <form id="supplierForm">
+                <div class="mb-3">
                     <label for="supplierName" class="form-label">Nama Supplier</label>
                     <input type="text" id="supplierName" class="form-control" required>
                 </div>
-                <div class="col-md-6">
-                    <label for="contact" class="form-label">Kontak</label>
-                    <input type="text" id="contact" class="form-control" required>
+                <div class="mb-3">
+                    <label for="supplierContact" class="form-label">Kontak</label>
+                    <input type="text" id="supplierContact" class="form-control" required>
                 </div>
-            </div>
-            <div class="row g-3 mb-3">
-                <div class="col-md-6">
-                    <label for="email" class="form-label">Email</label>
-                    <input type="email" id="email" class="form-control" required>
+                <div class="mb-3">
+                    <label for="supplierEmail" class="form-label">Email</label>
+                    <input type="email" id="supplierEmail" class="form-control" required>
                 </div>
-                <div class="col-md-6">
-                    <label for="address" class="form-label">Alamat</label>
-                    <input type="text" id="address" class="form-control" required>
+                <div class="mb-3">
+                    <label for="supplierAddress" class="form-label">Alamat</label>
+                    <input type="text" id="supplierAddress" class="form-control" required>
                 </div>
-            </div>
-            <div class="text-center">
+                <div class="mb-3">
+                    <label for="supplierStatus" class="form-label">Status</label>
+                    <select id="supplierStatus" class="form-select" required>
+                        <option value="aktif">Aktif</option>
+                        <option value="non-aktif">Non-Aktif</option>
+                    </select>
+                </div>
                 <button type="submit" class="btn btn-primary">Simpan Supplier</button>
-            </div>
-        </form>
+            </form>
+        </div>
 
         <!-- Tabel Daftar Supplier -->
         <div class="mt-5">
@@ -75,116 +48,132 @@
                 <thead class="table-primary">
                     <tr>
                         <th>No</th>
-                        <th>Nama Supplier</th>
+                        <th>ID Supplier</th>
+                        <th>Nama</th>
                         <th>Kontak</th>
                         <th>Email</th>
                         <th>Alamat</th>
-                        <th>ID Supplier</th>
+                        <th>Status</th>
                         <th>Aksi</th>
                     </tr>
                 </thead>
                 <tbody id="supplierTableBody">
-                    <!-- Data supplier akan dimuat di sini -->
+                    <!-- Daftar supplier akan dimuat di sini -->
                 </tbody>
             </table>
         </div>
     </div>
 
     <script>
-        let suppliers = JSON.parse(localStorage.getItem("suppliers")) || [];
-
-        // Menyimpan supplier ke localStorage
-        function saveSuppliers() {
-            localStorage.setItem("suppliers", JSON.stringify(suppliers));
+        // Fungsi untuk menghasilkan ID unik menggunakan UUID
+        function generateUniqueId() {
+            return 'xxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                var r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
+                return v.toString(16);
+            });
         }
 
-        // Menampilkan tabel supplier
+        // Data supplier yang disimpan di localStorage (untuk demo)
+        let suppliers = JSON.parse(localStorage.getItem("suppliers")) || [];
+
+        // Memuat daftar supplier
         function loadSuppliers() {
-            const tbody = document.getElementById("supplierTableBody");
-            tbody.innerHTML = "";
+            const tableBody = document.getElementById('supplierTableBody');
+            tableBody.innerHTML = ''; // Kosongkan tabel terlebih dahulu
 
             suppliers.forEach((supplier, index) => {
-                const tr = document.createElement("tr");
+                const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td>${index + 1}</td>
+                    <td>${supplier.id}</td>
                     <td>${supplier.name}</td>
                     <td>${supplier.contact}</td>
                     <td>${supplier.email}</td>
                     <td>${supplier.address}</td>
-                    <td>${supplier.id}</td>
+                    <td>${supplier.status}</td>
                     <td>
-                        <button class="btn btn-warning btn-sm" onclick="editSupplier(${supplier.id})">Edit</button>
-                        <button class="btn btn-danger btn-sm" onclick="deleteSupplier(${supplier.id})">Delete</button>
+                        <button class="btn btn-warning btn-sm" onclick="editSupplier('${supplier.id}')">Edit</button>
+                        <button class="btn btn-danger btn-sm" onclick="deleteSupplier('${supplier.id}')">Hapus</button>
                     </td>
                 `;
-                tbody.appendChild(tr);
+                tableBody.appendChild(tr);
             });
         }
 
-        // Menambah supplier baru
-        document.getElementById("supplierForm").addEventListener("submit", function (e) {
-            e.preventDefault();
-            const name = document.getElementById("supplierName").value;
-            const contact = document.getElementById("contact").value;
-            const email = document.getElementById("email").value;
-            const address = document.getElementById("address").value;
+        // Menangani pengiriman formulir
+        document.getElementById('supplierForm').addEventListener('submit', function(event) {
+            event.preventDefault();
 
-            // ID Unik untuk supplier
-            const supplierId = Date.now(); // Menggunakan timestamp sebagai ID unik
+            const name = document.getElementById('supplierName').value;
+            const contact = document.getElementById('supplierContact').value;
+            const email = document.getElementById('supplierEmail').value;
+            const address = document.getElementById('supplierAddress').value;
+            const status = document.getElementById('supplierStatus').value;
 
-            const supplier = {
-                id: supplierId,
-                name: name,
-                contact: contact,
-                email: email,
-                address: address
-            };
-            suppliers.push(supplier);
-            saveSuppliers();
+            // Memeriksa jika sedang dalam mode edit
+            const editingId = document.getElementById('supplierForm').dataset.editingId;
+
+            if (editingId) {
+                // Edit supplier
+                const supplierIndex = suppliers.findIndex(s => s.id === editingId);
+                suppliers[supplierIndex] = {
+                    id: editingId,
+                    name: name,
+                    contact: contact,
+                    email: email,
+                    address: address,
+                    status: status
+                };
+                localStorage.setItem("suppliers", JSON.stringify(suppliers));
+                Swal.fire("Sukses", "Supplier berhasil diubah!", "success");
+            } else {
+                // Tambah supplier baru
+                const newSupplier = {
+                    id: generateUniqueId(), // ID unik untuk supplier
+                    name: name,
+                    contact: contact,
+                    email: email,
+                    address: address,
+                    status: status
+                };
+
+                suppliers.push(newSupplier);
+                localStorage.setItem("suppliers", JSON.stringify(suppliers));
+                Swal.fire("Sukses", "Supplier baru berhasil ditambahkan!", "success");
+            }
+
+            // Reset formulir dan hapus data edit
+            document.getElementById('supplierForm').reset();
+            document.getElementById('supplierForm').removeAttribute('data-editing-id');
             loadSuppliers();
-            document.getElementById("supplierForm").reset();
-            Swal.fire("Sukses", "Supplier telah ditambahkan!", "success");
         });
 
-        // Menghapus supplier
-        function deleteSupplier(id) {
-            Swal.fire({
-                title: 'Hapus Supplier?',
-                text: "Data ini tidak dapat dikembalikan!",
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonText: 'Ya, hapus supplier!',
-                cancelButtonText: 'Batal'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    suppliers = suppliers.filter(supplier => supplier.id !== id);
-                    saveSuppliers();
-                    loadSuppliers();
-                    Swal.fire("Terhapus!", "Supplier telah dihapus.", "success");
-                }
-            });
+        // Fungsi untuk mengedit supplier
+        function editSupplier(supplierId) {
+            const supplier = suppliers.find(s => s.id === supplierId);
+            document.getElementById('supplierName').value = supplier.name;
+            document.getElementById('supplierContact').value = supplier.contact;
+            document.getElementById('supplierEmail').value = supplier.email;
+            document.getElementById('supplierAddress').value = supplier.address;
+            document.getElementById('supplierStatus').value = supplier.status;
+
+            // Set ID untuk menunjukkan bahwa ini adalah mode edit
+            document.getElementById('supplierForm').dataset.editingId = supplier.id;
         }
 
-        // Edit supplier
-        function editSupplier(id) {
-            const supplier = suppliers.find(s => s.id === id);
-            if (supplier) {
-                document.getElementById("supplierName").value = supplier.name;
-                document.getElementById("contact").value = supplier.contact;
-                document.getElementById("email").value = supplier.email;
-                document.getElementById("address").value = supplier.address;
-
-                // Hapus supplier dan beri ID untuk memperbarui
-                suppliers = suppliers.filter(s => s.id !== id);
-                saveSuppliers();
-                loadSuppliers();
-            }
+        // Fungsi untuk menghapus supplier
+        function deleteSupplier(supplierId) {
+            suppliers = suppliers.filter(s => s.id !== supplierId);
+            localStorage.setItem("suppliers", JSON.stringify(suppliers));
+            Swal.fire("Sukses", "Supplier berhasil dihapus!", "success");
+            loadSuppliers();
         }
 
-        // Memulai fungsi
+        // Memuat daftar supplier saat halaman dimuat
         loadSuppliers();
     </script>
 
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
