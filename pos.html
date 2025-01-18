@@ -85,6 +85,8 @@
     </div>
 
     <script>
+        const customers = JSON.parse(localStorage.getItem("customers")) || [];
+        const products = JSON.parse(localStorage.getItem("products")) || [];
         let cart = [];
         let totalAmount = 0;
 
