@@ -12,7 +12,7 @@
         
         <!-- Formulir Input Pelanggan -->
         <div class="mt-4">
-            <h4>Tambah Pelanggan Baru</h4>
+            <h4>Tambah/Edit Pelanggan</h4>
             <form id="customerForm">
                 <div class="mb-3">
                     <label for="customerName" class="form-label">Nama Pelanggan</label>
@@ -60,6 +60,7 @@
                         <th>Email</th>
                         <th>Alamat</th>
                         <th>Diskon</th>
+                        <th>Aksi</th>
                     </tr>
                 </thead>
                 <tbody id="customerTableBody">
@@ -97,6 +98,10 @@
                     <td>${customer.email}</td>
                     <td>${customer.address}</td>
                     <td>${customer.discount}%</td>
+                    <td>
+                        <button class="btn btn-warning btn-sm" onclick="editCustomer('${customer.id}')">Edit</button>
+                        <button class="btn btn-danger btn-sm" onclick="deleteCustomer('${customer.id}')">Hapus</button>
+                    </td>
                 `;
                 tableBody.appendChild(tr);
             });
@@ -113,29 +118,67 @@
             const address = document.getElementById('customerAddress').value;
             const discount = document.getElementById('customerDiscount').value;
 
-            const newCustomer = {
-                id: generateUniqueId(), // ID unik untuk pelanggan
-                name: name,
-                role: role,
-                phone: phone,
-                email: email,
-                address: address,
-                discount: discount
-            };
+            // Memeriksa jika sedang dalam mode edit
+            const editingId = document.getElementById('customerForm').dataset.editingId;
 
-            // Menambahkan pelanggan baru ke array
-            customers.push(newCustomer);
-            localStorage.setItem("customers", JSON.stringify(customers));
+            if (editingId) {
+                // Edit pelanggan
+                const customerIndex = customers.findIndex(c => c.id === editingId);
+                customers[customerIndex] = {
+                    id: editingId,
+                    name: name,
+                    role: role,
+                    phone: phone,
+                    email: email,
+                    address: address,
+                    discount: discount
+                };
+                localStorage.setItem("customers", JSON.stringify(customers));
+                Swal.fire("Sukses", "Pelanggan berhasil diubah!", "success");
+            } else {
+                // Tambah pelanggan baru
+                const newCustomer = {
+                    id: generateUniqueId(), // ID unik untuk pelanggan
+                    name: name,
+                    role: role,
+                    phone: phone,
+                    email: email,
+                    address: address,
+                    discount: discount
+                };
 
-            // Tampilkan notifikasi sukses
-            Swal.fire("Sukses", "Pelanggan baru berhasil ditambahkan!", "success");
+                customers.push(newCustomer);
+                localStorage.setItem("customers", JSON.stringify(customers));
+                Swal.fire("Sukses", "Pelanggan baru berhasil ditambahkan!", "success");
+            }
 
-            // Reset formulir
+            // Reset formulir dan hapus data edit
             document.getElementById('customerForm').reset();
-
-            // Memuat ulang daftar pelanggan
+            document.getElementById('customerForm').removeAttribute('data-editing-id');
             loadCustomers();
         });
+
+        // Fungsi untuk mengedit pelanggan
+        function editCustomer(customerId) {
+            const customer = customers.find(c => c.id === customerId);
+            document.getElementById('customerName').value = customer.name;
+            document.getElementById('roleSelect').value = customer.role;
+            document.getElementById('customerPhone').value = customer.phone;
+            document.getElementById('customerEmail').value = customer.email;
+            document.getElementById('customerAddress').value = customer.address;
+            document.getElementById('customerDiscount').value = customer.discount;
+
+            // Set ID untuk menunjukkan bahwa ini adalah mode edit
+            document.getElementById('customerForm').dataset.editingId = customer.id;
+        }
+
+        // Fungsi untuk menghapus pelanggan
+        function deleteCustomer(customerId) {
+            customers = customers.filter(c => c.id !== customerId);
+            localStorage.setItem("customers", JSON.stringify(customers));
+            Swal.fire("Sukses", "Pelanggan berhasil dihapus!", "success");
+            loadCustomers();
+        }
 
         // Memuat daftar pelanggan saat halaman dimuat
         loadCustomers();
