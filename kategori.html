@@ -1,58 +1,33 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kelola Kategori</title>
+    <title>Halaman Kategori</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
-    <style>
-        body {
-            font-family: 'Arial', sans-serif;
-        }
-        .navbar-brand {
-            font-weight: bold;
-        }
-    </style>
 </head>
 <body>
-    <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-        <div class="container">
-            <a class="navbar-brand" href="#">Kategori</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" href="dashboard.html">Dashboard</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#" onclick="logout()">Logout</a>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </nav>
-
-    <!-- Main Content -->
     <div class="container mt-4">
-        <h2 class="text-center mb-4">Kelola Kategori</h2>
-
-        <!-- Form Input Kategori -->
-        <form id="categoryForm">
-            <div class="row g-3 mb-3">
-                <div class="col-md-6">
+        <h2>Halaman Kategori</h2>
+        
+        <!-- Formulir Input Kategori -->
+        <div class="mt-4">
+            <h4>Tambah/Edit Kategori</h4>
+            <form id="categoryForm">
+                <div class="mb-3">
                     <label for="categoryName" class="form-label">Nama Kategori</label>
                     <input type="text" id="categoryName" class="form-control" required>
                 </div>
-            </div>
-            <div class="text-center">
+                <div class="mb-3">
+                    <label for="categoryStatus" class="form-label">Status</label>
+                    <select id="categoryStatus" class="form-select" required>
+                        <option value="aktif">Aktif</option>
+                        <option value="non-aktif">Non-Aktif</option>
+                    </select>
+                </div>
                 <button type="submit" class="btn btn-primary">Simpan Kategori</button>
-            </div>
-        </form>
+            </form>
+        </div>
 
         <!-- Tabel Daftar Kategori -->
         <div class="mt-5">
@@ -61,101 +36,114 @@
                 <thead class="table-primary">
                     <tr>
                         <th>No</th>
-                        <th>Nama Kategori</th>
                         <th>ID Kategori</th>
+                        <th>Nama</th>
+                        <th>Status</th>
                         <th>Aksi</th>
                     </tr>
                 </thead>
                 <tbody id="categoryTableBody">
-                    <!-- Data kategori akan dimuat di sini -->
+                    <!-- Daftar kategori akan dimuat di sini -->
                 </tbody>
             </table>
         </div>
     </div>
 
     <script>
+        // Fungsi untuk menghasilkan ID unik menggunakan UUID
+        function generateUniqueId() {
+            return 'xxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                var r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
+                return v.toString(16);
+            });
+        }
+
+        // Data kategori yang disimpan di localStorage (untuk demo)
         let categories = JSON.parse(localStorage.getItem("categories")) || [];
 
-        // Menyimpan kategori ke localStorage
-        function saveCategories() {
-            localStorage.setItem("categories", JSON.stringify(categories));
-        }
-
-        // Menampilkan tabel kategori
+        // Memuat daftar kategori
         function loadCategories() {
-            const tbody = document.getElementById("categoryTableBody");
-            tbody.innerHTML = "";
+            const tableBody = document.getElementById('categoryTableBody');
+            tableBody.innerHTML = ''; // Kosongkan tabel terlebih dahulu
 
             categories.forEach((category, index) => {
-                const tr = document.createElement("tr");
+                const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td>${index + 1}</td>
-                    <td>${category.name}</td>
                     <td>${category.id}</td>
+                    <td>${category.name}</td>
+                    <td>${category.status}</td>
                     <td>
-                        <button class="btn btn-warning btn-sm" onclick="editCategory(${category.id})">Edit</button>
-                        <button class="btn btn-danger btn-sm" onclick="deleteCategory(${category.id})">Delete</button>
+                        <button class="btn btn-warning btn-sm" onclick="editCategory('${category.id}')">Edit</button>
+                        <button class="btn btn-danger btn-sm" onclick="deleteCategory('${category.id}')">Hapus</button>
                     </td>
                 `;
-                tbody.appendChild(tr);
+                tableBody.appendChild(tr);
             });
         }
 
-        // Menambah kategori baru
-        document.getElementById("categoryForm").addEventListener("submit", function (e) {
-            e.preventDefault();
-            const name = document.getElementById("categoryName").value;
+        // Menangani pengiriman formulir
+        document.getElementById('categoryForm').addEventListener('submit', function(event) {
+            event.preventDefault();
 
-            // ID Unik untuk kategori
-            const categoryId = Date.now(); // Menggunakan timestamp sebagai ID unik
+            const name = document.getElementById('categoryName').value;
+            const status = document.getElementById('categoryStatus').value;
 
-            const category = {
-                id: categoryId,
-                name: name
-            };
-            categories.push(category);
-            saveCategories();
+            // Memeriksa jika sedang dalam mode edit
+            const editingId = document.getElementById('categoryForm').dataset.editingId;
+
+            if (editingId) {
+                // Edit kategori
+                const categoryIndex = categories.findIndex(c => c.id === editingId);
+                categories[categoryIndex] = {
+                    id: editingId,
+                    name: name,
+                    status: status
+                };
+                localStorage.setItem("categories", JSON.stringify(categories));
+                Swal.fire("Sukses", "Kategori berhasil diubah!", "success");
+            } else {
+                // Tambah kategori baru
+                const newCategory = {
+                    id: generateUniqueId(), // ID unik untuk kategori
+                    name: name,
+                    status: status
+                };
+
+                categories.push(newCategory);
+                localStorage.setItem("categories", JSON.stringify(categories));
+                Swal.fire("Sukses", "Kategori baru berhasil ditambahkan!", "success");
+            }
+
+            // Reset formulir dan hapus data edit
+            document.getElementById('categoryForm').reset();
+            document.getElementById('categoryForm').removeAttribute('data-editing-id');
             loadCategories();
-            document.getElementById("categoryForm").reset();
-            Swal.fire("Sukses", "Kategori telah ditambahkan!", "success");
         });
 
-        // Menghapus kategori
-        function deleteCategory(id) {
-            Swal.fire({
-                title: 'Hapus Kategori?',
-                text: "Data ini tidak dapat dikembalikan!",
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonText: 'Ya, hapus kategori!',
-                cancelButtonText: 'Batal'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    categories = categories.filter(category => category.id !== id);
-                    saveCategories();
-                    loadCategories();
-                    Swal.fire("Terhapus!", "Kategori telah dihapus.", "success");
-                }
-            });
+        // Fungsi untuk mengedit kategori
+        function editCategory(categoryId) {
+            const category = categories.find(c => c.id === categoryId);
+            document.getElementById('categoryName').value = category.name;
+            document.getElementById('categoryStatus').value = category.status;
+
+            // Set ID untuk menunjukkan bahwa ini adalah mode edit
+            document.getElementById('categoryForm').dataset.editingId = category.id;
         }
 
-        // Edit kategori
-        function editCategory(id) {
-            const category = categories.find(c => c.id === id);
-            if (category) {
-                document.getElementById("categoryName").value = category.name;
-
-                // Hapus kategori dan beri ID untuk memperbarui
-                categories = categories.filter(c => c.id !== id);
-                saveCategories();
-                loadCategories();
-            }
+        // Fungsi untuk menghapus kategori
+        function deleteCategory(categoryId) {
+            categories = categories.filter(c => c.id !== categoryId);
+            localStorage.setItem("categories", JSON.stringify(categories));
+            Swal.fire("Sukses", "Kategori berhasil dihapus!", "success");
+            loadCategories();
         }
 
-        // Memulai fungsi
+        // Memuat daftar kategori saat halaman dimuat
         loadCategories();
     </script>
 
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
