@@ -114,10 +114,22 @@
 
         // Data Produk (contoh)
         const products = {
-            product1: { name: "Produk 1", price: 100000 },
-            product2: { name: "Produk 2", price: 150000 },
-            product3: { name: "Produk 3", price: 200000 }
+            
         };
+
+        // Memuat data produk ke dropdown
+        function loadProducts() {
+            const productData = JSON.parse(localStorage.getItem('products')) || [];
+            const productSelect = document.getElementById('productSelect');
+            productSelect.innerHTML = '<option value="">Pilih Produk</option>';
+
+            productData.forEach(product => {
+                const option = document.createElement('option');
+                option.value = product.id;
+                option.textContent = `${product.name} - ${product.price.toLocaleString('id-ID')} IDR`;
+                productSelect.appendChild(option);
+            });
+        }
 
         // Keranjang Belanja
         let cart = [];
