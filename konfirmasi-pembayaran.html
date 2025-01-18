@@ -11,9 +11,18 @@
     <div class="container mt-4">
         <h2>Konfirmasi Pembayaran</h2>
 
-        <!-- Pencarian -->
-        <div class="mt-4">
-            <input type="text" id="searchInput" class="form-control" placeholder="Cari berdasarkan ID transaksi atau nama pelanggan..." oninput="filterPayments()">
+        <!-- Filter dan Pencarian -->
+        <div class="d-flex justify-content-between mt-4">
+            <div>
+                <select id="statusFilter" class="form-select" onchange="filterPayments()">
+                    <option value="all">Semua Status</option>
+                    <option value="lunas">Lunas</option>
+                    <option value="menunggu">Menunggu Pembayaran</option>
+                </select>
+            </div>
+            <div>
+                <input type="text" id="searchInput" class="form-control" placeholder="Cari ID transaksi atau nama pelanggan..." oninput="filterPayments()">
+            </div>
         </div>
 
         <!-- Tabel Daftar Pembayaran -->
@@ -23,7 +32,7 @@
                     <tr>
                         <th>ID Transaksi</th>
                         <th>Nama Pelanggan</th>
-                        <th>Total Pembayaran</th>
+                        <th>Total (Diskon)</th>
                         <th>Metode Pembayaran</th>
                         <th>Status</th>
                         <th>Aksi</th>
@@ -38,6 +47,13 @@
 
     <script>
         let payments = JSON.parse(localStorage.getItem("transactions")) || [];
+        let customers = JSON.parse(localStorage.getItem("customers")) || [];
+
+        // Mendapatkan diskon pelanggan
+        function getCustomerDiscount(customerId) {
+            const customer = customers.find(cust => cust.id === customerId);
+            return customer ? customer.discount : 0;
+        }
 
         // Menampilkan daftar pembayaran ke tabel
         function loadPayments() {
@@ -45,11 +61,14 @@
             paymentTableBody.innerHTML = "";
 
             payments.forEach((payment, index) => {
+                const discount = getCustomerDiscount(payment.customerId);
+                const discountedTotal = payment.total - (payment.total * discount / 100);
+
                 const row = document.createElement("tr");
                 row.innerHTML = `
                     <td>${payment.id}</td>
                     <td>${payment.customerName || "N/A"}</td>
-                    <td>${payment.total} IDR</td>
+                    <td>${discountedTotal.toFixed(2)} IDR (${discount}% diskon)</td>
                     <td>${payment.paymentMethod}</td>
                     <td>
                         <span class="badge ${payment.transactionStatus === "lunas" ? "bg-success" : "bg-warning"}">
@@ -57,9 +76,10 @@
                         </span>
                     </td>
                     <td>
+                        <button class="btn btn-sm btn-info" onclick="viewDetails(${index})">Detail</button>
                         ${
                             payment.transactionStatus === "menunggu"
-                                ? `<button class="btn btn-sm btn-success" onclick="confirmPayment(${index})">Konfirmasi</button>`
+                                ? `<button class="btn btn-sm btn-success ms-2" onclick="confirmPayment(${index})">Konfirmasi</button>`
                                 : "-"
                         }
                     </td>
@@ -68,23 +88,33 @@
             });
         }
 
-        // Filter pembayaran berdasarkan pencarian
+        // Filter pembayaran berdasarkan status dan pencarian
         function filterPayments() {
+            const statusFilter = document.getElementById("statusFilter").value;
             const query = document.getElementById("searchInput").value.toLowerCase();
-            const filteredPayments = payments.filter(payment =>
-                payment.id.toLowerCase().includes(query) ||
-                (payment.customerName && payment.customerName.toLowerCase().includes(query))
-            );
+
+            const filteredPayments = payments.filter(payment => {
+                const matchesStatus =
+                    statusFilter === "all" ||
+                    payment.transactionStatus === statusFilter;
+                const matchesQuery =
+                    payment.id.toLowerCase().includes(query) ||
+                    (payment.customerName && payment.customerName.toLowerCase().includes(query));
+                return matchesStatus && matchesQuery;
+            });
 
             const paymentTableBody = document.getElementById("paymentTableBody");
             paymentTableBody.innerHTML = "";
 
             filteredPayments.forEach((payment, index) => {
+                const discount = getCustomerDiscount(payment.customerId);
+                const discountedTotal = payment.total - (payment.total * discount / 100);
+
                 const row = document.createElement("tr");
                 row.innerHTML = `
                     <td>${payment.id}</td>
                     <td>${payment.customerName || "N/A"}</td>
-                    <td>${payment.total} IDR</td>
+                    <td>${discountedTotal.toFixed(2)} IDR (${discount}% diskon)</td>
                     <td>${payment.paymentMethod}</td>
                     <td>
                         <span class="badge ${payment.transactionStatus === "lunas" ? "bg-success" : "bg-warning"}">
@@ -92,9 +122,10 @@
                         </span>
                     </td>
                     <td>
+                        <button class="btn btn-sm btn-info" onclick="viewDetails(${index})">Detail</button>
                         ${
                             payment.transactionStatus === "menunggu"
-                                ? `<button class="btn btn-sm btn-success" onclick="confirmPayment(${index})">Konfirmasi</button>`
+                                ? `<button class="btn btn-sm btn-success ms-2" onclick="confirmPayment(${index})">Konfirmasi</button>`
                                 : "-"
                         }
                     </td>
@@ -118,6 +149,24 @@
                     localStorage.setItem("transactions", JSON.stringify(payments));
                     Swal.fire("Sukses", "Pembayaran telah dikonfirmasi!", "success").then(() => loadPayments());
                 }
+            });
+        }
+
+        // Menampilkan detail pembayaran
+        function viewDetails(index) {
+            const payment = payments[index];
+            Swal.fire({
+                title: "Detail Pembayaran",
+                html: `
+                    <p><strong>ID Transaksi:</strong> ${payment.id}</p>
+                    <p><strong>Nama Pelanggan:</strong> ${payment.customerName || "N/A"}</p>
+                    <p><strong>Total Pembayaran:</strong> ${payment.total} IDR</p>
+                    <p><strong>Metode Pembayaran:</strong> ${payment.paymentMethod}</p>
+                    <p><strong>Status:</strong> ${
+                        payment.transactionStatus === "lunas" ? "Lunas" : "Menunggu Pembayaran"
+                    }</p>
+                `,
+                icon: "info",
             });
         }
 
