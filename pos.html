@@ -119,6 +119,27 @@
                 }
             }
         }
+        // Produk
+        function loadProducts() {
+            const productList = document.getElementById("productList");
+            productList.innerHTML = "";
+            products.forEach(product => {
+                const col = document.createElement("div");
+                col.classList.add("col-md-4", "mb-3");
+                col.innerHTML = `
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">${product.name}</h5>
+                            <p class="card-text">Harga: ${product.price} IDR</p>
+                            <button class="btn btn-primary" onclick="addToCart('${product.id}')">Tambah ke Keranjang</button>
+                        </div>
+                    </div>
+                `;
+                productList.appendChild(col);
+            });
+        }
+
+        //keranjang
 
         function addToCart() {
             const productSelect = document.getElementById("productSelect");
