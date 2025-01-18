@@ -41,6 +41,10 @@
                         <label for="customerAddress" class="form-label">Alamat</label>
                         <textarea id="customerAddress" class="form-control" rows="2"></textarea>
                     </div>
+                    <div class="mb-3">
+                        <label for="customerDiscount" class="form-label">Diskon (%)</label>
+                        <input type="number" id="customerDiscount" class="form-control" value="0" min="0" max="100">
+                    </div>
                 </div>
                 <div id="existingCustomer" style="display: none;">
                     <label for="existingCustomerName" class="form-label">Pilih Pelanggan</label>
@@ -78,6 +82,8 @@
             </table>
             <div class="text-end">
                 <h5>Total Belanja: <span id="cartTotal">0</span> IDR</h5>
+                <h5>Diskon: <span id="discountAmount">0</span> IDR</h5>
+                <h5>Total Setelah Diskon: <span id="finalTotal">0</span> IDR</h5>
             </div>
         </div>
 
@@ -91,12 +97,8 @@
             </select>
         </div>
 
-        <!-- Diskon dan Status Pembayaran -->
+        <!-- Status Pembayaran -->
         <div class="mt-4">
-            <h5>Diskon</h5>
-            <p id="discountDisplay">Diskon: 0%</p>
-        </div>
-        <div>
             <label for="transactionStatus" class="form-label">Status Pembayaran</label>
             <select id="transactionStatus" class="form-select">
                 <option value="lunas">Lunas</option>
@@ -126,50 +128,32 @@
                 document.getElementById("existingCustomer").style.display = "block";
                 loadCustomers(role);
             }
+
+            updateDiscount();
         }
 
-        function loadCustomers(role) {
-            const filteredCustomers = customers.filter(c => c.role === role);
-            const select = document.getElementById("existingCustomerName");
-            select.innerHTML = "";
-            filteredCustomers.forEach(customer => {
-                const option = document.createElement("option");
-                option.value = customer.id;
-                option.textContent = `${customer.name} (${customer.id})`;
-                select.appendChild(option);
-            });
-        }
+        function updateDiscount() {
+            const role = document.getElementById("customerRole").value;
+            const discountInput = document.getElementById("customerDiscount");
 
-        function loadProducts() {
-            const productList = document.getElementById("productList");
-            productList.innerHTML = "";
-            products.forEach(product => {
-                const col = document.createElement("div");
-                col.classList.add("col-md-4", "mb-3");
-                col.innerHTML = `
-                    <div class="card">
-                        <div class="card-body">
-                            <h5 class="card-title">${product.name}</h5>
-                            <p class="card-text">Harga: ${product.price} IDR</p>
-                            <button class="btn btn-primary" onclick="addToCart('${product.id}')">Tambah ke Keranjang</button>
-                        </div>
-                    </div>
-                `;
-                productList.appendChild(col);
-            });
-        }
-
-        function addToCart(productId) {
-            const product = products.find(p => p.id === productId);
-            const existingItem = cart.find(item => item.id === productId);
-
-            if (existingItem) {
-                existingItem.quantity += 1;
+            if (role === "umum") {
+                discountInput.disabled = false;
             } else {
-                cart.push({ ...product, quantity: 1 });
+                discountInput.disabled = true;
+                discountInput.value = role === "pelsem" ? 10 : role === "pelmem" ? 15 : 0;
             }
 
-            updateCart();
+            calculateFinalTotal();
+        }
+
+        function calculateFinalTotal() {
+            const total = parseInt(document.getElementById("cartTotal").textContent) || 0;
+            const discountPercentage = parseInt(document.getElementById("customerDiscount").value) || 0;
+            const discountAmount = (total * discountPercentage) / 100;
+            const finalTotal = total - discountAmount;
+
+            document.getElementById("discountAmount").textContent = discountAmount.toFixed(2);
+            document.getElementById("finalTotal").textContent = finalTotal.toFixed(2);
         }
 
         function updateCart() {
@@ -196,12 +180,7 @@
             });
 
             cartTotal.textContent = total;
-        }
-
-        function removeFromCart(productId) {
-            const index = cart.findIndex(item => item.id === productId);
-            cart.splice(index, 1);
-            updateCart();
+            calculateFinalTotal();
         }
 
         function saveTransaction() {
@@ -220,6 +199,8 @@
                 customerName: role === "umum" ? document.getElementById("customerName").value : document.getElementById("existingCustomerName").value,
                 products: cart,
                 total: parseInt(document.getElementById("cartTotal").textContent),
+                discount: parseInt(document.getElementById("customerDiscount").value) || 0,
+                finalTotal: parseInt(document.getElementById("finalTotal").textContent),
                 paymentMethod,
                 transactionStatus
             };
@@ -235,7 +216,7 @@
         }
 
         document.addEventListener("DOMContentLoaded", () => {
-            loadProducts();
+            updateDiscount();
         });
     </script>
 </body>
