@@ -3,67 +3,75 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>POS dengan Data Otomatis</title>
+    <title>Halaman POS</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/switchery@0.8.2/dist/switchery.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/switchery@0.8.2/dist/switchery.min.css" rel="stylesheet">
 </head>
 <body>
     <div class="container mt-4">
-        <h2 class="text-center">POS - Data Pelanggan dan Produk</h2>
+        <h2>Halaman POS (Point of Sale)</h2>
 
-        <!-- Form POS -->
-        <form id="posForm" class="mt-4">
-            <!-- Pilih Role Pelanggan -->
-            <div class="mb-3">
-                <label for="customerRole" class="form-label">Pilih Role Pelanggan</label>
-                <select id="customerRole" class="form-select" onchange="handleRoleChange()">
-                    <option value="umum">Umum</option>
-                    <option value="pelsem">PelSem</option>
-                    <option value="pelmem">PelMem</option>
-                </select>
-            </div>
-
-            <!-- Data Pelanggan -->
-            <div id="customerInfo">
-                <div class="mb-3">
-                    <label for="customerName" class="form-label">Nama Pelanggan</label>
-                    <input type="text" id="customerName" class="form-control" required>
-                </div>
-                <div class="mb-3">
-                    <label for="customerContact" class="form-label">Kontak</label>
-                    <input type="text" id="customerContact" class="form-control" required>
-                </div>
-                <div class="mb-3">
-                    <label for="customerEmail" class="form-label">Email</label>
-                    <input type="email" id="customerEmail" class="form-control">
-                </div>
-                <div class="mb-3">
-                    <label for="customerAddress" class="form-label">Alamat</label>
-                    <textarea id="customerAddress" class="form-control"></textarea>
-                </div>
-            </div>
-
-            <!-- Pilih Produk -->
-            <div class="mb-3">
-                <label for="productSelect" class="form-label">Pilih Produk</label>
-                <select id="productSelect" class="form-select" required>
-                    <!-- Produk akan dimuat otomatis -->
-                </select>
-            </div>
-
-            <!-- Jumlah Produk -->
-            <div class="mb-3">
-                <label for="quantity" class="form-label">Jumlah</label>
-                <input type="number" id="quantity" class="form-control" value="1" min="1" required>
-            </div>
-            <button type="button" class="btn btn-primary" onclick="addToCart()">Tambah ke Keranjang</button>
-        </form>
-
-        <!-- Keranjang -->
+        <!-- Formulir Transaksi POS -->
         <div class="mt-4">
-            <h5>Keranjang</h5>
+            <h4>Formulir Transaksi</h4>
+            <form id="posForm">
+                <!-- Pilih Role -->
+                <div class="mb-3">
+                    <label for="customerRole" class="form-label">Pilih Peran Pelanggan</label>
+                    <select id="customerRole" class="form-select" required onchange="handleRoleChange()">
+                        <option value="umum">Umum</option>
+                        <option value="pelsem">PelSem</option>
+                        <option value="pelmem">PelMem</option>
+                    </select>
+                </div>
+
+                <!-- Data Pelanggan -->
+                <div id="customerForm" class="mt-3">
+                    <h5>Data Pelanggan</h5>
+                    <div class="mb-3">
+                        <label for="customerName" class="form-label">Nama Pelanggan</label>
+                        <input type="text" id="customerName" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="customerContact" class="form-label">No. Handphone</label>
+                        <input type="text" id="customerContact" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="customerEmail" class="form-label">Email</label>
+                        <input type="email" id="customerEmail" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="customerAddress" class="form-label">Alamat</label>
+                        <textarea id="customerAddress" class="form-control" rows="3" required></textarea>
+                    </div>
+                </div>
+
+                <!-- Produk -->
+                <div class="mb-3">
+                    <label for="productSelect" class="form-label">Pilih Produk</label>
+                    <select id="productSelect" class="form-select" required>
+                        <!-- Produk akan dimuat di sini -->
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label for="quantity" class="form-label">Jumlah</label>
+                    <input type="number" id="quantity" class="form-control" value="1" min="1" required>
+                </div>
+
+                <div class="mb-3">
+                    <label for="discount" class="form-label">Diskon (%)</label>
+                    <input type="number" id="discount" class="form-control" value="0" min="0" max="100" required>
+                </div>
+
+                <button type="button" class="btn btn-primary" onclick="addToCart()">Tambah ke Keranjang</button>
+            </form>
+
+            <h5 class="mt-4">Keranjang Belanja</h5>
             <table class="table table-bordered" id="cartTable">
-                <thead>
+                <thead class="table-primary">
                     <tr>
                         <th>Produk</th>
                         <th>Harga</th>
@@ -75,26 +83,49 @@
                 </thead>
                 <tbody></tbody>
             </table>
-            <h5>Subtotal: <span id="subtotal">0</span> IDR</h5>
+
+            <h5>Total Sebelum Pengiriman: <span id="totalAmount">0</span> IDR</h5>
+
+            <!-- Jasa Pengiriman -->
+            <div class="form-check form-switch mt-4">
+                <input class="form-check-input" type="checkbox" id="shippingSwitch">
+                <label class="form-check-label" for="shippingSwitch">Aktifkan Jasa Pengiriman</label>
+            </div>
+
+            <div id="shippingForm" style="display:none;" class="mt-3">
+                <label for="shippingCost" class="form-label">Biaya Pengiriman</label>
+                <input type="number" id="shippingCost" class="form-control" value="0" min="0">
+            </div>
+
+            <div class="mt-3">
+                <label for="paymentMethod" class="form-label">Metode Pembayaran</label>
+                <select id="paymentMethod" class="form-select" onchange="handlePaymentMethodChange()">
+                    <option value="cash">Tunai</option>
+                    <option value="transfer">Transfer</option>
+                    <option value="ewallet">E-Wallet</option>
+                </select>
+            </div>
+
+            <div class="mt-3" id="paymentProofDiv" style="display:none;">
+                <label for="paymentProof" class="form-label">Upload Bukti Pembayaran</label>
+                <input type="file" id="paymentProof" class="form-control">
+            </div>
+
+            <h5 class="mt-4">Total yang Harus Dibayar: <span id="finalAmount">0</span> IDR</h5>
+            <h5 class="mt-4">Bayar: <input type="number" id="amountPaid" class="form-control" onchange="calculateChange()"></h5>
+            <h5 class="mt-4">Kembalian: <span id="changeAmount">0</span> IDR</h5>
+
+            <button type="button" class="btn btn-success mt-4" onclick="checkout()">Checkout</button>
         </div>
     </div>
 
     <script>
-        // Data Pelanggan (Pelsem dan Pelmem)
-        const customers = [
-            { id: 'CUS001', name: 'Andi', role: 'PelSem', contact: '08123456789', email: 'andi@example.com', address: 'Jl. Mawar 1' },
-            { id: 'CUS002', name: 'Budi', role: 'PelMem', contact: '08198765432', email: 'budi@example.com', address: 'Jl. Melati 2' }
-        ];
-
-        // Data Produk
-        const products = [
-            { id: 'PROD001', name: 'Produk A', price: 50000 },
-            { id: 'PROD002', name: 'Produk B', price: 75000 },
-            { id: 'PROD003', name: 'Produk C', price: 100000 }
-        ];
-
+        const customers = JSON.parse(localStorage.getItem("customers")) || [];
+        const products = JSON.parse(localStorage.getItem("products")) || [];
         let cart = [];
-        let subtotal = 0;
+        let totalAmount = 0;
+        let shippingCost = 0;
+        let finalAmount = 0;
 
         // Load Produk
         function loadProducts() {
@@ -102,86 +133,135 @@
             products.forEach(product => {
                 const option = document.createElement('option');
                 option.value = product.id;
-                option.textContent = `${product.name} - ${product.price} IDR`;
+                option.innerText = `${product.name} - ${product.price} IDR`;
                 productSelect.appendChild(option);
             });
         }
 
-        // Role Change Handler
+        // Handle Role Change
         function handleRoleChange() {
             const role = document.getElementById('customerRole').value;
-            const customerInfo = document.getElementById('customerInfo');
-            if (role === 'umum') {
-                customerInfo.style.display = 'block';
-                document.getElementById('customerName').value = '';
-                document.getElementById('customerContact').value = '';
-                document.getElementById('customerEmail').value = '';
-                document.getElementById('customerAddress').value = '';
+            const customerForm = document.getElementById('customerForm');
+
+            if (role === "umum") {
+                customerForm.style.display = "block";
+                resetCustomerForm();
             } else {
-                const customer = customers.find(c => c.role.toLowerCase() === role);
+                const customer = customers.find(c => c.role === role);
                 if (customer) {
                     document.getElementById('customerName').value = customer.name;
-                    document.getElementById('customerContact').value = customer.contact;
+                    document.getElementById('customerContact').value = customer.phone;
                     document.getElementById('customerEmail').value = customer.email;
                     document.getElementById('customerAddress').value = customer.address;
+                    customerForm.style.display = "none";
+                } else {
+                    Swal.fire("Peringatan", `Data pelanggan untuk role "${role}" tidak ditemukan.`, "warning");
+                    resetCustomerForm();
                 }
-                customerInfo.style.display = 'none';
             }
         }
 
-        // Tambah ke Keranjang
+        // Reset Form Pelanggan
+        function resetCustomerForm() {
+            document.getElementById('customerName').value = "";
+            document.getElementById('customerContact').value = "";
+            document.getElementById('customerEmail').value = "";
+            document.getElementById('customerAddress').value = "";
+        }
+
+        // Add Product to Cart
         function addToCart() {
             const productId = document.getElementById('productSelect').value;
             const quantity = parseInt(document.getElementById('quantity').value);
+            const discount = parseFloat(document.getElementById('discount').value) || 0;
             const product = products.find(p => p.id === productId);
 
             if (product) {
-                const total = product.price * quantity;
-                cart.push({ product, quantity, total, discount: 0 });
+                const discountAmount = (product.price * discount) / 100;
+                const totalPrice = (product.price - discountAmount) * quantity;
+                cart.push({ product, quantity, discount, totalPrice });
                 updateCart();
             }
         }
 
-        // Update Keranjang
+        // Update Cart
         function updateCart() {
             const cartTableBody = document.getElementById('cartTable').getElementsByTagName('tbody')[0];
             cartTableBody.innerHTML = '';
-            subtotal = 0;
 
-            cart.forEach((item, index) => {
-                subtotal += item.total - item.discount;
+            totalAmount = 0;
+            cart.forEach(item => {
+                totalAmount += item.totalPrice;
                 const row = cartTableBody.insertRow();
                 row.innerHTML = `
                     <td>${item.product.name}</td>
                     <td>${item.product.price}</td>
                     <td>${item.quantity}</td>
-                    <td>
-                        <input type="number" class="form-control" value="${item.discount}" 
-                               onchange="applyDiscount(${index}, this.value)">
-                    </td>
-                    <td>${item.total - item.discount}</td>
-                    <td>
-                        <button class="btn btn-danger btn-sm" onclick="removeFromCart(${index})">Hapus</button>
-                    </td>
+                    <td>${item.discount}%</td>
+                    <td>${item.totalPrice}</td>
+                    <td><button class="btn btn-danger btn-sm" onclick="removeFromCart('${item.product.id}')">Hapus</button></td>
                 `;
             });
 
-            document.getElementById('subtotal').innerText = subtotal;
+            document.getElementById('totalAmount').innerText = totalAmount;
+            calculateFinalAmount();
         }
 
-        // Diskon
-        function applyDiscount(index, discount) {
-            cart[index].discount = parseInt(discount) || 0;
+        // Remove Item from Cart
+        function removeFromCart(productId) {
+            cart = cart.filter(item => item.product.id !== productId);
             updateCart();
         }
 
-        // Hapus dari Keranjang
-        function removeFromCart(index) {
-            cart.splice(index, 1);
-            updateCart();
+        // Calculate Final Amount
+        function calculateFinalAmount() {
+            shippingCost = document.getElementById('shippingCost').value || 0;
+            finalAmount = totalAmount + parseInt(shippingCost);
+            document.getElementById('finalAmount').innerText = finalAmount;
+        }
+
+        // Handle Shipping Switch
+        document.getElementById('shippingSwitch').addEventListener('change', function() {
+            const shippingForm = document.getElementById('shippingForm');
+            if (this.checked) {
+                shippingForm.style.display = "block";
+            } else {
+                shippingForm.style.display = "none";
+            }
+            calculateFinalAmount();
+        });
+
+        // Handle Payment Method Change
+        function handlePaymentMethodChange() {
+            const paymentMethod = document.getElementById('paymentMethod').value;
+            const paymentProofDiv = document.getElementById('paymentProofDiv');
+            if (paymentMethod === "cash") {
+                paymentProofDiv.style.display = "none";
+            } else {
+                paymentProofDiv.style.display = "block";
+            }
+        }
+
+        // Calculate Change
+        function calculateChange() {
+            const amountPaid = parseInt(document.getElementById('amountPaid').value) || 0;
+            const change = amountPaid - finalAmount;
+            document.getElementById('changeAmount').innerText = change >= 0 ? change : 0;
+        }
+
+        // Checkout
+        function checkout() {
+            Swal.fire({
+                title: 'Checkout Berhasil!',
+                text: 'Transaksi berhasil diselesaikan.',
+                icon: 'success',
+                confirmButtonText: 'OK'
+            });
         }
 
         loadProducts();
     </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
