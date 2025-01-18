@@ -113,6 +113,39 @@
             localStorage.setItem("customers", JSON.stringify(customers));
         }
 
+        function handleRoleChange() {
+    const role = document.getElementById("role").value;
+    const formUmum = document.getElementById("formUmum");
+    const formPelSemPelMem = document.getElementById("formPelSemPelMem");
+
+    if (role === "Umum") {
+        formUmum.classList.remove("d-none");
+        formPelSemPelMem.classList.add("d-none");
+    } else if (role === "PelSem" || role === "PelMem") {
+        formUmum.classList.add("d-none");
+        formPelSemPelMem.classList.remove("d-none");
+        loadRegisteredCustomers(role);
+    } else {
+        formUmum.classList.add("d-none");
+        formPelSemPelMem.classList.add("d-none");
+    }
+}
+
+        
+function loadRegisteredCustomers(role) {
+    const dropdown = document.getElementById("registeredCustomers");
+    dropdown.innerHTML = '<option value="">-- Pilih Pelanggan --</option>';
+
+    customers.filter(c => c.role === role).forEach(customer => {
+        const option = document.createElement("option");
+        option.value = customer.id;
+        option.textContent = `${customer.name} (${customer.id})`;
+        dropdown.appendChild(option);
+    });
+}
+
+        
+
         // Menampilkan tabel pelanggan
         function loadCustomers() {
             const tbody = document.getElementById("customerTableBody");
@@ -137,68 +170,52 @@
             });
         }
 
-        // Menambah pelanggan baru
-        document.getElementById("customerForm").addEventListener("submit", function (e) {
-            e.preventDefault();
-            const role = document.getElementById("role").value;
-            const name = document.getElementById("customerName").value;
-            const contact = document.getElementById("contact").value;
-            const email = document.getElementById("email").value;
-            const address = document.getElementById("address").value;
+        function saveCustomer() {
+    const role = document.getElementById("role").value;
 
-            // ID Unik untuk pelanggan
-            const customerId = Date.now(); // Menggunakan timestamp sebagai ID unik
+    if (!role) {
+        Swal.fire("Error", "Pilih role terlebih dahulu.", "error");
+        return;
+    }
 
-            const customer = {
-                id: customerId,
-                role: role,
-                name: name,
-                contact: contact,
-                email: email,
-                address: address
-            };
-            customers.push(customer);
-            saveCustomers();
-            loadCustomers();
-            document.getElementById("customerForm").reset();
-            Swal.fire("Sukses", "Pelanggan telah ditambahkan!", "success");
-        });
+    if (role === "Umum") {
+        const name = document.getElementById("name").value;
+        const contact = document.getElementById("contact").value;
+        const email = document.getElementById("email").value;
+        const address = document.getElementById("address").value;
 
-        // Menghapus pelanggan
-        function deleteCustomer(id) {
-            Swal.fire({
-                title: 'Hapus Pelanggan?',
-                text: "Data ini tidak dapat dikembalikan!",
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonText: 'Ya, hapus pelanggan!',
-                cancelButtonText: 'Batal'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    customers = customers.filter(customer => customer.id !== id);
-                    saveCustomers();
-                    loadCustomers();
-                    Swal.fire("Terhapus!", "Pelanggan telah dihapus.", "success");
-                }
-            });
+        if (!name) {
+            Swal.fire("Error", "Nama pelanggan wajib diisi.", "error");
+            return;
         }
 
-        // Edit pelanggan
-        function editCustomer(id) {
-            const customer = customers.find(c => c.id === id);
-            if (customer) {
-                document.getElementById("role").value = customer.role;
-                document.getElementById("customerName").value = customer.name;
-                document.getElementById("contact").value = customer.contact;
-                document.getElementById("email").value = customer.email;
-                document.getElementById("address").value = customer.address;
+        const newCustomer = {
+            id: `C${Date.now()}`,
+            name,
+            contact,
+            email,
+            address,
+            role: "Umum"
+        };
 
-                // Hapus pelanggan dan beri ID untuk memperbarui
-                customers = customers.filter(c => c.id !== id);
-                saveCustomers();
-                loadCustomers();
-            }
+        customers.push(newCustomer);
+        saveToLocalStorage();
+        Swal.fire("Sukses", "Data pelanggan berhasil disimpan.", "success");
+        displayCustomers();
+    } else if (role === "PelSem" || role === "PelMem") {
+        const selectedId = document.getElementById("registeredCustomers").value;
+
+        if (!selectedId) {
+            Swal.fire("Error", "Pilih pelanggan dari daftar.", "error");
+            return;
         }
+
+        Swal.fire("Sukses", "Pelanggan terdaftar berhasil dipilih.", "success");
+    }
+}
+
+
+
 
         // Mengubah nama pelanggan berdasarkan role
         document.getElementById("role").addEventListener("change", function () {
@@ -215,6 +232,48 @@
                 }
             }
         });
+
+
+function displayCustomers() {
+    const tbody = document.getElementById("customerTableBody");
+    tbody.innerHTML = "";
+
+    customers.forEach((customer, index) => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+            <td>${index + 1}</td>
+            <td>${customer.id}</td>
+            <td>${customer.name}</td>
+            <td>${customer.contact || "-"}</td>
+            <td>${customer.email || "-"}</td>
+            <td>${customer.address || "-"}</td>
+            <td>${customer.role}</td>
+            <td>
+                <button class="btn btn-warning btn-sm" onclick="editCustomer('${customer.id}')">Edit</button>
+                <button class="btn btn-danger btn-sm" onclick="deleteCustomer('${customer.id}')">Hapus</button>
+            </td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
+
+
+        function editCustomer(id) {
+    const customer = customers.find(c => c.id === id);
+
+    if (customer) {
+        Swal.fire("Edit Customer", "Fitur ini akan segera dikembangkan.", "info");
+    }
+}
+
+function deleteCustomer(id) {
+    customers = customers.filter(c => c.id !== id);
+    saveToLocalStorage();
+    displayCustomers();
+    Swal.fire("Sukses", "Data pelanggan berhasil dihapus.", "success");
+}
+
+        
 
         // Memulai fungsi
         loadCustomers();
