@@ -3,233 +3,239 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Halaman POS</title>
+    <title>POS (Point of Sale)</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
     <div class="container mt-4">
         <h2>Point of Sale (POS)</h2>
 
-        <!-- Formulir Pemilihan Pelanggan -->
+        <!-- Form Pilih Customer -->
         <div class="mt-4">
-            <h4>Pilih Pelanggan</h4>
-            <form id="posForm">
+            <h5>Pilih Pelanggan</h5>
+            <form id="customerForm">
                 <div class="mb-3">
-                    <label for="customerRole" class="form-label">Pilih Role Pelanggan</label>
+                    <label for="customerRole" class="form-label">Role Pelanggan</label>
                     <select id="customerRole" class="form-select" onchange="handleCustomerRoleChange()">
-                        <option value="umum">-Pilih-</option>
+                        <option value="">Pilih Role</option>
                         <option value="umum">Umum</option>
                         <option value="pelsem">PelSem</option>
                         <option value="pelmem">PelMem</option>
                     </select>
                 </div>
-
-                <!-- Formulir Umum -->
-                <div id="customerDetails" class="mb-3" style="display: none;">
-                    <h5>Data Pelanggan</h5>
-                    <label for="customerName" class="form-label">Nama Pelanggan</label>
-                    <input type="text" id="customerName" class="form-control" placeholder="Nama Pelanggan" required>
-                    <label for="contact" class="form-label">Kontak</label>
-                    <input type="text" id="contact" class="form-control" placeholder="Kontak" required>
-                    <label for="email" class="form-label">Email</label>
-                    <input type="email" id="email" class="form-control" placeholder="Email" required>
-                    <label for="address" class="form-label">Alamat</label>
-                    <input type="text" id="address" class="form-control" placeholder="Alamat" required>
+                <div id="manualCustomerForm" style="display: none;">
+                    <div class="mb-3">
+                        <label for="customerName" class="form-label">Nama Pelanggan</label>
+                        <input type="text" id="customerName" class="form-control">
+                    </div>
+                    <div class="mb-3">
+                        <label for="customerContact" class="form-label">Kontak</label>
+                        <input type="text" id="customerContact" class="form-control">
+                    </div>
+                    <div class="mb-3">
+                        <label for="customerEmail" class="form-label">Email</label>
+                        <input type="email" id="customerEmail" class="form-control">
+                    </div>
+                    <div class="mb-3">
+                        <label for="customerAddress" class="form-label">Alamat</label>
+                        <textarea id="customerAddress" class="form-control" rows="2"></textarea>
+                    </div>
                 </div>
-
-                <!-- Pelanggan Pelsem/Pelmem -->
-                <div id="existingCustomerDetails" class="mb-3" style="display: none;">
-                    <h5>Data Pelanggan</h5>
-                    <label for="customerID" class="form-label">ID Pelanggan</label>
-                    <input type="text" id="customerID" class="form-control" readonly>
-                    <label for="existingCustomerName" class="form-label">Nama Pelanggan</label>
-                    <input type="text" id="existingCustomerName" class="form-control" readonly>
-                    <label for="existingContact" class="form-label">Kontak</label>
-                    <input type="text" id="existingContact" class="form-control" readonly>
-                    <label for="existingEmail" class="form-label">Email</label>
-                    <input type="email" id="existingEmail" class="form-control" readonly>
-                    <label for="existingAddress" class="form-label">Alamat</label>
-                    <input type="text" id="existingAddress" class="form-control" readonly>
-                </div>
-
-                <!-- Pilih Produk -->
-                <div class="mb-3">
-                    <label for="productSelect" class="form-label">Pilih Produk</label>
-                    <select id="productSelect" class="form-select">
-                        <option value="product1">Produk 1</option>
-                        <option value="product2">Produk 2</option>
-                        <option value="product3">Produk 3</option>
+                <div id="existingCustomer" style="display: none;">
+                    <label for="existingCustomerName" class="form-label">Pilih Pelanggan</label>
+                    <select id="existingCustomerName" class="form-select">
+                        <!-- Pelanggan akan dimuat dari localStorage -->
                     </select>
                 </div>
-
-                <!-- Keranjang Belanja -->
-                <div class="mb-3">
-                    <h5>Keranjang Belanja</h5>
-                    <table class="table table-bordered" id="cartTable">
-                        <thead>
-                            <tr>
-                                <th>Produk</th>
-                                <th>Harga</th>
-                                <th>Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <!-- Item keranjang akan ditambahkan di sini -->
-                        </tbody>
-                    </table>
-                </div>
-
-                <!-- Metode Pembayaran -->
-                <div class="mb-3">
-                    <label for="paymentMethod" class="form-label">Metode Pembayaran</label>
-                    <select id="paymentMethod" class="form-select">
-                        <option value="cash">Tunai</option>
-                        <option value="creditCard">Kartu Kredit</option>
-                        <option value="transfer">Transfer Bank</option>
-                    </select>
-                </div>
-
-                <!-- Status Pembayaran -->
-                <div class="mb-3">
-                    <label for="paymentStatus" class="form-label">Status Pembayaran</label>
-                    <select id="paymentStatus" class="form-select">
-                        <option value="unpaid">Menunggu Pembayaran</option>
-                        <option value="paid">Lunas</option>
-                    </select>
-                </div>
-
-                <button type="submit" class="btn btn-primary">Proses Pembayaran</button>
             </form>
         </div>
 
-        <!-- Notifikasi -->
-        <div id="notification" class="mt-4"></div>
+        <!-- Pilih Produk -->
+        <div class="mt-4">
+            <h5>Pilih Produk</h5>
+            <div id="productList" class="row">
+                <!-- Produk akan dimuat dari localStorage -->
+            </div>
+        </div>
+
+        <!-- Keranjang Belanja -->
+        <div class="mt-4">
+            <h5>Keranjang Belanja</h5>
+            <table class="table table-bordered">
+                <thead class="table-primary">
+                    <tr>
+                        <th>Produk</th>
+                        <th>Harga</th>
+                        <th>Kuantitas</th>
+                        <th>Total</th>
+                        <th>Aksi</th>
+                    </tr>
+                </thead>
+                <tbody id="cartTableBody">
+                    <!-- Keranjang akan dimuat di sini -->
+                </tbody>
+            </table>
+            <div class="text-end">
+                <h5>Total Belanja: <span id="cartTotal">0</span> IDR</h5>
+            </div>
+        </div>
+
+        <!-- Metode Pembayaran -->
+        <div class="mt-4">
+            <h5>Metode Pembayaran</h5>
+            <select id="paymentMethod" class="form-select mb-3">
+                <option value="tunai">Tunai</option>
+                <option value="kartu kredit">Kartu Kredit</option>
+                <option value="e-wallet">E-Wallet</option>
+            </select>
+        </div>
+
+        <!-- Diskon dan Status Pembayaran -->
+        <div class="mt-4">
+            <h5>Diskon</h5>
+            <p id="discountDisplay">Diskon: 0%</p>
+        </div>
+        <div>
+            <label for="transactionStatus" class="form-label">Status Pembayaran</label>
+            <select id="transactionStatus" class="form-select">
+                <option value="lunas">Lunas</option>
+                <option value="menunggu">Menunggu Pembayaran</option>
+            </select>
+        </div>
+
+        <!-- Simpan Transaksi -->
+        <div class="mt-4 text-end">
+            <button class="btn btn-success" onclick="saveTransaction()">Simpan Transaksi</button>
+        </div>
     </div>
 
     <script>
-        // Data Transaksi (contoh)
-        let transactions = [];
+        const customers = JSON.parse(localStorage.getItem("customers")) || [];
+        const products = JSON.parse(localStorage.getItem("products")) || [];
+        const cart = [];
 
-        // Data Produk (contoh)
-        const products = {
-            
-        };
-
-        // Memuat data produk ke dropdown
-        function loadProducts() {
-            const productData = JSON.parse(localStorage.getItem('products')) || [];
-            const productSelect = document.getElementById('productSelect');
-            productSelect.innerHTML = '<option value="">Pilih Produk</option>';
-
-            productData.forEach(product => {
-                const option = document.createElement('option');
-                option.value = product.id;
-                option.textContent = `${product.name} - ${product.price.toLocaleString('id-ID')} IDR`;
-                productSelect.appendChild(option);
-            });
-        }
-
-        // Keranjang Belanja
-        let cart = [];
-
-        // Handle perubahan Role Pelanggan
         function handleCustomerRoleChange() {
-            const role = document.getElementById('customerRole').value;
-            if (role === 'umum') {
-                document.getElementById('customerDetails').style.display = 'block';
-                document.getElementById('existingCustomerDetails').style.display = 'none';
+            const role = document.getElementById("customerRole").value;
+
+            if (role === "umum") {
+                document.getElementById("manualCustomerForm").style.display = "block";
+                document.getElementById("existingCustomer").style.display = "none";
             } else {
-                document.getElementById('customerDetails').style.display = 'none';
-                document.getElementById('existingCustomerDetails').style.display = 'block';
-                loadCustomerData(role);
+                document.getElementById("manualCustomerForm").style.display = "none";
+                document.getElementById("existingCustomer").style.display = "block";
+                loadCustomers(role);
             }
         }
 
-        // Fungsi untuk memuat data pelanggan berdasarkan role
-        function loadCustomerData(role) {
-            // Simulasi mengambil data pelanggan berdasarkan role
-            const customers = JSON.parse(localStorage.getItem("customers")) || [];
-            const customer = customers.find(c => c.role === role);
-
-            if (customer) {
-                document.getElementById('customerID').value = customer.id;
-                document.getElementById('existingCustomerName').value = customer.name;
-                document.getElementById('existingContact').value = customer.contact;
-                document.getElementById('existingEmail').value = customer.email;
-                document.getElementById('existingAddress').value = customer.address;
-            } else {
-                alert("Data pelanggan tidak ditemukan");
-            }
-        }
-
-        // Menambah produk ke keranjang
-        document.getElementById('productSelect').addEventListener('change', function () {
-            const productId = this.value;
-            addToCart(productId);
-        });
-
-        // Fungsi untuk menambahkan produk ke keranjang
-        function addToCart(productId) {
-            const product = products[productId];
-            if (product) {
-                cart.push(product);
-                updateCart();
-            }
-        }
-
-        // Fungsi untuk memperbarui tampilan keranjang
-        function updateCart() {
-            const cartTable = document.getElementById('cartTable').getElementsByTagName('tbody')[0];
-            cartTable.innerHTML = ''; // Kosongkan tabel
-
-            cart.forEach((product, index) => {
-                const row = cartTable.insertRow();
-                row.innerHTML = `
-                    <td>${product.name}</td>
-                    <td>${product.price} IDR</td>
-                    <td><button class="btn btn-danger" onclick="removeFromCart(${index})">Hapus</button></td>
-                `;
+        function loadCustomers(role) {
+            const filteredCustomers = customers.filter(c => c.role === role);
+            const select = document.getElementById("existingCustomerName");
+            select.innerHTML = "";
+            filteredCustomers.forEach(customer => {
+                const option = document.createElement("option");
+                option.value = customer.id;
+                option.textContent = `${customer.name} (${customer.id})`;
+                select.appendChild(option);
             });
         }
 
-        // Fungsi untuk menghapus produk dari keranjang
-        function removeFromCart(index) {
+        function loadProducts() {
+            const productList = document.getElementById("productList");
+            productList.innerHTML = "";
+            products.forEach(product => {
+                const col = document.createElement("div");
+                col.classList.add("col-md-4", "mb-3");
+                col.innerHTML = `
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">${product.name}</h5>
+                            <p class="card-text">Harga: ${product.price} IDR</p>
+                            <button class="btn btn-primary" onclick="addToCart('${product.id}')">Tambah ke Keranjang</button>
+                        </div>
+                    </div>
+                `;
+                productList.appendChild(col);
+            });
+        }
+
+        function addToCart(productId) {
+            const product = products.find(p => p.id === productId);
+            const existingItem = cart.find(item => item.id === productId);
+
+            if (existingItem) {
+                existingItem.quantity += 1;
+            } else {
+                cart.push({ ...product, quantity: 1 });
+            }
+
+            updateCart();
+        }
+
+        function updateCart() {
+            const cartTableBody = document.getElementById("cartTableBody");
+            const cartTotal = document.getElementById("cartTotal");
+            cartTableBody.innerHTML = "";
+
+            let total = 0;
+
+            cart.forEach(item => {
+                const row = document.createElement("tr");
+                row.innerHTML = `
+                    <td>${item.name}</td>
+                    <td>${item.price}</td>
+                    <td>${item.quantity}</td>
+                    <td>${item.price * item.quantity}</td>
+                    <td>
+                        <button class="btn btn-danger btn-sm" onclick="removeFromCart('${item.id}')">Hapus</button>
+                    </td>
+                `;
+                cartTableBody.appendChild(row);
+
+                total += item.price * item.quantity;
+            });
+
+            cartTotal.textContent = total;
+        }
+
+        function removeFromCart(productId) {
+            const index = cart.findIndex(item => item.id === productId);
             cart.splice(index, 1);
             updateCart();
         }
 
-        // Fungsi untuk menangani proses pembayaran
-        document.getElementById('posForm').addEventListener('submit', function (e) {
-            e.preventDefault();
-            const paymentStatus = document.getElementById('paymentStatus').value;
-            const paymentMethod = document.getElementById('paymentMethod').value;
-            const customerRole = document.getElementById('customerRole').value;
-            const customerName = customerRole === 'umum' ? document.getElementById('customerName').value : document.getElementById('existingCustomerName').value;
+        function saveTransaction() {
+            const role = document.getElementById("customerRole").value;
+            const paymentMethod = document.getElementById("paymentMethod").value;
+            const transactionStatus = document.getElementById("transactionStatus").value;
 
-            const totalAmount = cart.reduce((total, product) => total + product.price, 0);
+            if (cart.length === 0) {
+                Swal.fire("Error", "Keranjang belanja kosong!", "error");
+                return;
+            }
+
             const transaction = {
-                id: `T${Math.random().toString(36).substr(2, 9)}`,
-                customerName: customerName,
-                products: cart.map(product => product.name),
-                totalAmount: totalAmount,
-                paymentMethod: paymentMethod,
-                paymentStatus: paymentStatus,
-                date: new Date().toISOString().split('T')[0] // Date formatted as YYYY-MM-DD
+                id: `T-${Date.now()}`,
+                customerRole: role,
+                customerName: role === "umum" ? document.getElementById("customerName").value : document.getElementById("existingCustomerName").value,
+                products: cart,
+                total: parseInt(document.getElementById("cartTotal").textContent),
+                paymentMethod,
+                transactionStatus
             };
 
+            const transactions = JSON.parse(localStorage.getItem("transactions")) || [];
             transactions.push(transaction);
             localStorage.setItem("transactions", JSON.stringify(transactions));
-            Swal.fire({
-                icon: 'success',
-                title: 'Pembayaran Berhasil',
-                text: `Transaksi ${transaction.id} berhasil diproses. Total: ${totalAmount} IDR.`,
-            });
 
-            // Clear keranjang setelah transaksi
-            cart = [];
-            updateCart();
+            Swal.fire("Sukses", "Transaksi berhasil disimpan!", "success").then(() => {
+                cart.length = 0;
+                updateCart();
+            });
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            loadProducts();
         });
     </script>
 </body>
