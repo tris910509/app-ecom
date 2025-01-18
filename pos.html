@@ -6,210 +6,198 @@
     <title>Halaman POS</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
 </head>
 <body>
     <div class="container mt-4">
-        <h2>Halaman POS</h2>
+        <h2>Halaman POS (Point of Sale)</h2>
 
-        <!-- Pilih Pelanggan -->
+        <!-- Formulir Transaksi POS -->
         <div class="mt-4">
-            <label for="customerRole" class="form-label">Pilih Role Pelanggan</label>
-            <select id="customerRole" class="form-select" onchange="handleCustomerRole()">
-                <option value="" disabled selected>Pilih Role</option>
-                <option value="umum">Umum</option>
-                <option value="pelsem">PelSem</option>
-                <option value="pelmem">PelMem</option>
-            </select>
-        </div>
+            <h4>Formulir Transaksi</h4>
+            <form id="posForm">
+                <div class="mb-3">
+                    <label for="customerRole" class="form-label">Pilih Peran Pelanggan</label>
+                    <select id="customerRole" class="form-select" required>
+                        <option value="umum">Umum</option>
+                        <option value="pelsem">PelSem</option>
+                        <option value="pelmem">PelMem</option>
+                    </select>
+                </div>
 
-        <div id="customerDetails" class="mt-3">
-            <!-- Form pelanggan akan dimuat di sini -->
-        </div>
+                <div id="customerForm" class="mt-3">
+                    <h5>Data Pelanggan</h5>
+                    <div class="mb-3">
+                        <label for="customerName" class="form-label">Nama Pelanggan</label>
+                        <input type="text" id="customerName" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="customerContact" class="form-label">Kontak</label>
+                        <input type="text" id="customerContact" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="customerEmail" class="form-label">Email</label>
+                        <input type="email" id="customerEmail" class="form-control" required>
+                    </div>
+                </div>
 
-        <!-- Pilih Produk -->
-        <div class="mt-4">
-            <label for="productSelect" class="form-label">Pilih Produk</label>
-            <select id="productSelect" class="form-select">
-                <!-- Produk akan dimuat dari localStorage -->
-            </select>
-        </div>
-        <button class="btn btn-primary mt-2" onclick="addToCart()">Tambah ke Keranjang</button>
+                <div class="mb-3">
+                    <label for="productSelect" class="form-label">Pilih Produk</label>
+                    <select id="productSelect" class="form-select" required>
+                        <!-- Produk akan dimuat di sini -->
+                    </select>
+                </div>
 
-        <!-- Keranjang -->
-        <div class="mt-4">
-            <h5>Keranjang</h5>
-            <table class="table table-bordered">
-                <thead>
+                <div class="mb-3">
+                    <label for="quantity" class="form-label">Jumlah</label>
+                    <input type="number" id="quantity" class="form-control" value="1" min="1" required>
+                </div>
+
+                <div class="mb-3">
+                    <label for="discount" class="form-label">Diskon (%)</label>
+                    <input type="number" id="discount" class="form-control" value="0" min="0" max="100">
+                </div>
+
+                <button type="button" class="btn btn-primary" onclick="addToCart()">Tambah ke Keranjang</button>
+            </form>
+
+            <h5 class="mt-4">Keranjang Belanja</h5>
+            <table class="table table-bordered" id="cartTable">
+                <thead class="table-primary">
                     <tr>
-                        <th>Nama Produk</th>
+                        <th>Produk</th>
                         <th>Harga</th>
                         <th>Jumlah</th>
-                        <th>Subtotal</th>
+                        <th>Total</th>
                         <th>Aksi</th>
                     </tr>
                 </thead>
-                <tbody id="cartTableBody"></tbody>
+                <tbody></tbody>
             </table>
-        </div>
 
-        <!-- Total & Diskon -->
-        <div class="mt-4">
-            <div class="row">
-                <div class="col-md-6">
-                    <label for="discount" class="form-label">Diskon (%)</label>
-                    <input type="number" id="discount" class="form-control" value="0" oninput="updateTotal()">
-                </div>
-                <div class="col-md-6">
-                    <h5>Total: <span id="totalAmount">0</span> IDR</h5>
-                </div>
+            <h5>Total: <span id="totalAmount">0</span> IDR</h5>
+
+            <div class="mb-3">
+                <label for="paymentMethod" class="form-label">Metode Pembayaran</label>
+                <select id="paymentMethod" class="form-select" onchange="togglePaymentProof()" required>
+                    <option value="cash">Cash</option>
+                    <option value="transfer">Transfer</option>
+                    <option value="ewallet">E-Wallet</option>
+                </select>
             </div>
-        </div>
 
-        <!-- Metode Pembayaran -->
-        <div class="mt-4">
-            <label for="paymentMethod" class="form-label">Metode Pembayaran</label>
-            <select id="paymentMethod" class="form-select" onchange="handlePaymentMethod()">
-                <option value="" disabled selected>Pilih Metode</option>
-                <option value="cash">Cash</option>
-                <option value="transfer">Transfer</option>
-                <option value="ewallet">E-Wallet</option>
-            </select>
-        </div>
+            <div id="proofUpload" class="mb-3" style="display: none;">
+                <label for="paymentProof" class="form-label">Upload Bukti Pembayaran</label>
+                <input type="file" id="paymentProof" class="form-control" accept="image/*">
+            </div>
 
-        <div id="paymentDetails" class="mt-3">
-            <!-- Form pembayaran akan dimuat di sini -->
-        </div>
+            <div class="mb-3">
+                <label for="cashPaid" class="form-label">Jumlah Dibayar (Cash)</label>
+                <input type="number" id="cashPaid" class="form-control" min="0" oninput="calculateChange()">
+            </div>
+            <h5>Kembalian: <span id="changeAmount">0</span> IDR</h5>
 
-        <button class="btn btn-success mt-4" onclick="finalizePayment()">Proses Pembayaran</button>
+            <button class="btn btn-success mt-4" onclick="processPayment()">Proses Pembayaran</button>
+        </div>
     </div>
 
     <script>
+        const products = JSON.parse(localStorage.getItem("products")) || [];
         let cart = [];
         let totalAmount = 0;
 
-        function handleCustomerRole() {
-            const role = document.getElementById("customerRole").value;
-            const detailsContainer = document.getElementById("customerDetails");
-
-            if (role === "umum") {
-                detailsContainer.innerHTML = `
-                    <label for="customerName" class="form-label">Nama Pelanggan</label>
-                    <input type="text" id="customerName" class="form-control">
-                    <label for="customerContact" class="form-label">Kontak</label>
-                    <input type="text" id="customerContact" class="form-control">
-                    <label for="customerEmail" class="form-label">Email</label>
-                    <input type="email" id="customerEmail" class="form-control">
-                    <label for="customerAddress" class="form-label">Alamat</label>
-                    <textarea id="customerAddress" class="form-control"></textarea>
-                `;
-            } else {
-                // Load customer data automatically
-                const customers = JSON.parse(localStorage.getItem("customers")) || [];
-                const customer = customers.find(c => c.role === role);
-                if (customer) {
-                    detailsContainer.innerHTML = `
-                        <p><strong>Nama:</strong> ${customer.name}</p>
-                        <p><strong>Kontak:</strong> ${customer.contact}</p>
-                        <p><strong>Email:</strong> ${customer.email}</p>
-                        <p><strong>Alamat:</strong> ${customer.address}</p>
-                    `;
-                }
-            }
+        function loadProducts() {
+            const productSelect = document.getElementById('productSelect');
+            products.forEach(product => {
+                const option = document.createElement('option');
+                option.value = product.id;
+                option.innerText = product.name;
+                productSelect.appendChild(option);
+            });
         }
 
         function addToCart() {
-            const productSelect = document.getElementById("productSelect");
-            const productName = productSelect.options[productSelect.selectedIndex].text;
-            const productPrice = parseInt(productSelect.value);
+            const productId = document.getElementById('productSelect').value;
+            const quantity = parseInt(document.getElementById('quantity').value);
+            const discount = parseFloat(document.getElementById('discount').value || 0) / 100;
+            const product = products.find(p => p.id === productId);
 
-            cart.push({ name: productName, price: productPrice, quantity: 1, subtotal: productPrice });
-            updateCart();
+            if (product) {
+                const discountedPrice = product.price - product.price * discount;
+                const totalPrice = discountedPrice * quantity;
+
+                cart.push({ product, quantity, discountedPrice, totalPrice });
+                updateCart();
+            }
         }
 
         function updateCart() {
-            const tableBody = document.getElementById("cartTableBody");
-            tableBody.innerHTML = "";
+            const cartTableBody = document.getElementById('cartTable').getElementsByTagName('tbody')[0];
+            cartTableBody.innerHTML = '';
 
-            cart.forEach((item, index) => {
-                const row = document.createElement("tr");
+            totalAmount = 0;
+            cart.forEach(item => {
+                totalAmount += item.totalPrice;
+                const row = cartTableBody.insertRow();
                 row.innerHTML = `
-                    <td>${item.name}</td>
-                    <td>${item.price}</td>
-                    <td>
-                        <input type="number" value="${item.quantity}" min="1" class="form-control" onchange="updateQuantity(${index}, this.value)">
-                    </td>
-                    <td>${item.subtotal}</td>
-                    <td><button class="btn btn-danger btn-sm" onclick="removeFromCart(${index})">Hapus</button></td>
+                    <td>${item.product.name}</td>
+                    <td>${item.discountedPrice}</td>
+                    <td>${item.quantity}</td>
+                    <td>${item.totalPrice}</td>
+                    <td><button class="btn btn-danger btn-sm" onclick="removeFromCart('${item.product.id}')">Hapus</button></td>
                 `;
-                tableBody.appendChild(row);
             });
 
-            updateTotal();
+            document.getElementById('totalAmount').innerText = totalAmount;
         }
 
-        function updateQuantity(index, quantity) {
-            cart[index].quantity = parseInt(quantity);
-            cart[index].subtotal = cart[index].price * cart[index].quantity;
+        function removeFromCart(productId) {
+            cart = cart.filter(item => item.product.id !== productId);
             updateCart();
         }
 
-        function removeFromCart(index) {
-            cart.splice(index, 1);
-            updateCart();
-        }
+        function togglePaymentProof() {
+            const paymentMethod = document.getElementById('paymentMethod').value;
+            const proofUpload = document.getElementById('proofUpload');
+            const cashPaid = document.getElementById('cashPaid');
 
-        function updateTotal() {
-            totalAmount = cart.reduce((sum, item) => sum + item.subtotal, 0);
-            const discount = parseInt(document.getElementById("discount").value) || 0;
-            totalAmount -= (totalAmount * discount) / 100;
-            document.getElementById("totalAmount").innerText = totalAmount;
-        }
-
-        function handlePaymentMethod() {
-            const method = document.getElementById("paymentMethod").value;
-            const detailsContainer = document.getElementById("paymentDetails");
-
-            if (method === "cash") {
-                detailsContainer.innerHTML = `
-                    <label for="cashReceived" class="form-label">Jumlah Uang Diterima</label>
-                    <input type="number" id="cashReceived" class="form-control" oninput="calculateChange()">
-                    <p>Kembalian: <span id="changeAmount">0</span> IDR</p>
-                `;
+            if (paymentMethod === 'cash') {
+                proofUpload.style.display = 'none';
+                cashPaid.parentElement.style.display = 'block';
             } else {
-                detailsContainer.innerHTML = `
-                    <label for="paymentProof" class="form-label">Upload Bukti Pembayaran</label>
-                    <input type="file" id="paymentProof" class="form-control">
-                `;
+                proofUpload.style.display = 'block';
+                cashPaid.parentElement.style.display = 'none';
             }
         }
 
         function calculateChange() {
-            const cashReceived = parseInt(document.getElementById("cashReceived").value) || 0;
-            const change = cashReceived - totalAmount;
-            document.getElementById("changeAmount").innerText = change >= 0 ? change : 0;
+            const cashPaid = parseFloat(document.getElementById('cashPaid').value || 0);
+            const changeAmount = Math.max(0, cashPaid - totalAmount);
+            document.getElementById('changeAmount').innerText = changeAmount;
         }
 
-        function finalizePayment() {
-            const method = document.getElementById("paymentMethod").value;
+        function processPayment() {
+            const paymentMethod = document.getElementById('paymentMethod').value;
+            const cashPaid = parseFloat(document.getElementById('cashPaid').value || 0);
+            const changeAmount = cashPaid - totalAmount;
 
-            if (method === "cash") {
-                const cashReceived = parseInt(document.getElementById("cashReceived").value) || 0;
-
-                if (cashReceived >= totalAmount) {
-                    Swal.fire("Pembayaran Berhasil", "Status: Lunas", "success");
-                } else {
-                    Swal.fire("Pembayaran Gagal", "Jumlah uang kurang", "error");
-                }
-            } else {
-                const paymentProof = document.getElementById("paymentProof").files[0];
-                if (paymentProof) {
-                    Swal.fire("Pembayaran Berhasil", "Bukti pembayaran telah diunggah", "success");
-                } else {
-                    Swal.fire("Pembayaran Gagal", "Silakan unggah bukti pembayaran", "error");
-                }
+            if (paymentMethod === 'cash' && cashPaid < totalAmount) {
+                Swal.fire("Peringatan", "Jumlah cash tidak mencukupi!", "warning");
+                return;
             }
+
+            if (paymentMethod !== 'cash' && !document.getElementById('paymentProof').files.length) {
+                Swal.fire("Peringatan", "Harap upload bukti pembayaran!", "warning");
+                return;
+            }
+
+            Swal.fire("Berhasil", "Transaksi berhasil diproses!", "success");
+            cart = [];
+            updateCart();
         }
+
+        loadProducts();
     </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
