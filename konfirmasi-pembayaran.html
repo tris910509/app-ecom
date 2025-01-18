@@ -76,12 +76,10 @@
                         </span>
                     </td>
                     <td>
-                        <button class="btn btn-sm btn-info" onclick="viewDetails(${index})">Detail</button>
-                        ${
-                            payment.transactionStatus === "menunggu"
-                                ? `<button class="btn btn-sm btn-success ms-2" onclick="confirmPayment(${index})">Konfirmasi</button>`
-                                : "-"
-                        }
+                        <button class="btn btn-sm ${payment.transactionStatus === 'lunas' ? 'btn-success' : 'btn-warning'}" 
+                            onclick="handlePayment(${index})">
+                            ${payment.transactionStatus === 'lunas' ? 'Lunas' : 'Konfirmasi Pembayaran'}
+                        </button>
                     </td>
                 `;
                 paymentTableBody.appendChild(row);
@@ -122,52 +120,35 @@
                         </span>
                     </td>
                     <td>
-                        <button class="btn btn-sm btn-info" onclick="viewDetails(${index})">Detail</button>
-                        ${
-                            payment.transactionStatus === "menunggu"
-                                ? `<button class="btn btn-sm btn-success ms-2" onclick="confirmPayment(${index})">Konfirmasi</button>`
-                                : "-"
-                        }
+                        <button class="btn btn-sm ${payment.transactionStatus === 'lunas' ? 'btn-success' : 'btn-warning'}" 
+                            onclick="handlePayment(${index})">
+                            ${payment.transactionStatus === 'lunas' ? 'Lunas' : 'Konfirmasi Pembayaran'}
+                        </button>
                     </td>
                 `;
                 paymentTableBody.appendChild(row);
             });
         }
 
-        // Konfirmasi pembayaran
-        function confirmPayment(index) {
-            Swal.fire({
-                title: "Konfirmasi Pembayaran",
-                text: "Apakah Anda yakin ingin mengkonfirmasi pembayaran ini?",
-                icon: "warning",
-                showCancelButton: true,
-                confirmButtonText: "Ya, Konfirmasi",
-                cancelButtonText: "Batal"
-            }).then(result => {
-                if (result.isConfirmed) {
-                    payments[index].transactionStatus = "lunas";
-                    localStorage.setItem("transactions", JSON.stringify(payments));
-                    Swal.fire("Sukses", "Pembayaran telah dikonfirmasi!", "success").then(() => loadPayments());
-                }
-            });
-        }
-
-        // Menampilkan detail pembayaran
-        function viewDetails(index) {
+        // Menangani konfirmasi pembayaran
+        function handlePayment(index) {
             const payment = payments[index];
-            Swal.fire({
-                title: "Detail Pembayaran",
-                html: `
-                    <p><strong>ID Transaksi:</strong> ${payment.id}</p>
-                    <p><strong>Nama Pelanggan:</strong> ${payment.customerName || "N/A"}</p>
-                    <p><strong>Total Pembayaran:</strong> ${payment.total} IDR</p>
-                    <p><strong>Metode Pembayaran:</strong> ${payment.paymentMethod}</p>
-                    <p><strong>Status:</strong> ${
-                        payment.transactionStatus === "lunas" ? "Lunas" : "Menunggu Pembayaran"
-                    }</p>
-                `,
-                icon: "info",
-            });
+            if (payment.transactionStatus === "menunggu") {
+                Swal.fire({
+                    title: "Konfirmasi Pembayaran",
+                    text: "Apakah Anda yakin ingin mengkonfirmasi pembayaran ini?",
+                    icon: "warning",
+                    showCancelButton: true,
+                    confirmButtonText: "Ya, Konfirmasi",
+                    cancelButtonText: "Batal"
+                }).then(result => {
+                    if (result.isConfirmed) {
+                        payments[index].transactionStatus = "lunas";
+                        localStorage.setItem("transactions", JSON.stringify(payments));
+                        Swal.fire("Sukses", "Pembayaran telah dikonfirmasi!", "success").then(() => loadPayments());
+                    }
+                });
+            }
         }
 
         // Inisialisasi
