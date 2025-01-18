@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>POS dengan Diskon & Jasa Pengiriman</title>
+    <title>POS dengan Diskon Per Item & Pengiriman Manual</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
@@ -47,24 +47,6 @@
             <button type="button" class="btn btn-primary" onclick="addToCart()">Tambah ke Keranjang</button>
         </form>
 
-        <!-- Diskon dan Jasa Pengiriman -->
-        <div class="mt-4">
-            <h5>Diskon</h5>
-            <div class="d-flex align-items-center">
-                <input type="number" id="discountValue" class="form-control me-2" placeholder="Jumlah Diskon">
-                <select id="discountType" class="form-select w-auto">
-                    <option value="percent">%</option>
-                    <option value="amount">IDR</option>
-                </select>
-            </div>
-
-            <h5 class="mt-4">Jasa Pengiriman</h5>
-            <div class="form-check form-switch">
-                <input class="form-check-input" type="checkbox" id="shippingToggle" onchange="toggleShipping()">
-                <label class="form-check-label" for="shippingToggle">Aktifkan Jasa Pengiriman</label>
-            </div>
-        </div>
-
         <!-- Keranjang Belanja -->
         <div class="mt-4">
             <h5>Keranjang Belanja</h5>
@@ -74,6 +56,7 @@
                         <th>Produk</th>
                         <th>Harga</th>
                         <th>Jumlah</th>
+                        <th>Diskon</th>
                         <th>Total</th>
                         <th>Aksi</th>
                     </tr>
@@ -83,22 +66,22 @@
             <h5>Total: <span id="totalAmount">0</span> IDR</h5>
         </div>
 
+        <!-- Jasa Pengiriman -->
+        <div class="mt-4">
+            <h5>Jasa Pengiriman</h5>
+            <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" id="shippingToggle" onchange="toggleShipping()">
+                <label class="form-check-label" for="shippingToggle">Aktifkan Jasa Pengiriman</label>
+            </div>
+            <div id="shippingInput" class="mt-2" style="display: none;">
+                <label for="shippingCost" class="form-label">Biaya Pengiriman</label>
+                <input type="number" id="shippingCost" class="form-control" placeholder="Masukkan Biaya Pengiriman">
+            </div>
+        </div>
+
         <!-- Pembayaran -->
         <div class="mt-4">
             <h5>Checkout</h5>
-            <div class="mb-3">
-                <label for="paymentMethod" class="form-label">Metode Pembayaran</label>
-                <select id="paymentMethod" class="form-select" onchange="handlePaymentMethod()">
-                    <option value="cash">Cash</option>
-                    <option value="transfer">Transfer</option>
-                    <option value="ewallet">E-Wallet</option>
-                </select>
-            </div>
-            <div id="proofUpload" class="mb-3" style="display: none;">
-                <label for="paymentProof" class="form-label">Upload Bukti Pembayaran</label>
-                <input type="file" id="paymentProof" class="form-control">
-            </div>
-
             <button class="btn btn-success" onclick="checkout()">Proses Checkout</button>
         </div>
     </div>
@@ -138,7 +121,7 @@
 
             if (product) {
                 const totalPrice = product.price * quantity;
-                cart.push({ product, quantity, totalPrice });
+                cart.push({ product, quantity, totalPrice, discount: 0 });
                 updateCart();
             }
         }
@@ -147,44 +130,49 @@
             const cartTableBody = document.getElementById('cartTable').getElementsByTagName('tbody')[0];
             cartTableBody.innerHTML = '';
             totalAmount = 0;
-            cart.forEach(item => {
-                totalAmount += item.totalPrice;
+            cart.forEach((item, index) => {
+                totalAmount += item.totalPrice - item.discount;
                 const row = cartTableBody.insertRow();
                 row.innerHTML = `
                     <td>${item.product.name}</td>
                     <td>${item.product.price}</td>
                     <td>${item.quantity}</td>
-                    <td>${item.totalPrice}</td>
-                    <td><button class="btn btn-danger btn-sm" onclick="removeFromCart('${item.product.id}')">Hapus</button></td>
+                    <td>
+                        <input type="number" class="form-control" placeholder="Diskon" onchange="applyDiscount(${index}, this.value)">
+                    </td>
+                    <td>${item.totalPrice - item.discount}</td>
+                    <td><button class="btn btn-danger btn-sm" onclick="removeFromCart(${index})">Hapus</button></td>
                 `;
             });
-            document.getElementById('totalAmount').innerText = totalAmount;
+            document.getElementById('totalAmount').innerText = totalAmount + shippingCost;
+        }
+
+        function applyDiscount(index, value) {
+            const discount = parseFloat(value) || 0;
+            cart[index].discount = discount;
+            updateCart();
         }
 
         function toggleShipping() {
             const isChecked = document.getElementById('shippingToggle').checked;
-            shippingCost = isChecked ? 10000 : 0; // Biaya pengiriman 10,000 IDR
-        }
-
-        function handlePaymentMethod() {
-            const method = document.getElementById('paymentMethod').value;
-            document.getElementById('proofUpload').style.display = method === "cash" ? "none" : "block";
+            const shippingInput = document.getElementById('shippingInput');
+            if (isChecked) {
+                shippingInput.style.display = "block";
+                shippingCost = parseFloat(document.getElementById('shippingCost').value) || 0;
+            } else {
+                shippingInput.style.display = "none";
+                shippingCost = 0;
+            }
+            updateCart();
         }
 
         function checkout() {
-            const discountValue = parseFloat(document.getElementById('discountValue').value) || 0;
-            const discountType = document.getElementById('discountType').value;
-
-            const discount = discountType === "percent" ? (totalAmount * discountValue) / 100 : discountValue;
-            const finalTotal = totalAmount - discount + shippingCost;
-
             Swal.fire({
                 title: 'Checkout Berhasil',
                 html: `
-                    <p>Total: ${totalAmount} IDR</p>
-                    <p>Diskon: -${discount} IDR</p>
-                    <p>Jasa Pengiriman: +${shippingCost} IDR</p>
-                    <h4>Total Akhir: ${finalTotal} IDR</h4>
+                    <p>Total Barang: ${totalAmount} IDR</p>
+                    <p>Biaya Pengiriman: ${shippingCost} IDR</p>
+                    <h4>Total Akhir: ${totalAmount + shippingCost} IDR</h4>
                 `,
                 icon: 'success'
             });
