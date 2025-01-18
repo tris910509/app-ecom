@@ -29,11 +29,13 @@
 
         <!-- Pilih Produk -->
         <div class="mt-4">
-            <h5>Pilih Produk</h5>
-            <div id="productList" class="row">
+            <label for="productSelect" class="form-label">Pilih Produk</label>
+            <select id="productSelect" class="form-select">
                 <!-- Produk akan dimuat dari localStorage -->
-            </div>
+            </select>
         </div>
+        <button class="btn btn-primary mt-2" onclick="addToCart()">Tambah ke Keranjang</button>
+
         <!-- Keranjang -->
         <div class="mt-4">
             <h5>Keranjang</h5>
@@ -83,8 +85,6 @@
     </div>
 
     <script>
-        const customers = JSON.parse(localStorage.getItem("customers")) || [];
-        const products = JSON.parse(localStorage.getItem("products")) || [];
         let cart = [];
         let totalAmount = 0;
 
@@ -117,27 +117,6 @@
                 }
             }
         }
-        // Produk
-        function loadProducts() {
-            const productList = document.getElementById("productList");
-            productList.innerHTML = "";
-            products.forEach(product => {
-                const col = document.createElement("div");
-                col.classList.add("col-md-4", "mb-3");
-                col.innerHTML = `
-                    <div class="card">
-                        <div class="card-body">
-                            <h5 class="card-title">${product.name}</h5>
-                            <p class="card-text">Harga: ${product.price} IDR</p>
-                            <button class="btn btn-primary" onclick="addToCart('${product.id}')">Tambah ke Keranjang</button>
-                        </div>
-                    </div>
-                `;
-                productList.appendChild(col);
-            });
-        }
-
-        //keranjang
 
         function addToCart() {
             const productSelect = document.getElementById("productSelect");
