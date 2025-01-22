@@ -103,12 +103,24 @@
         <div class="mt-5">
             <h4>Pembayaran</h4>
             <form id="paymentForm">
+                <!-- Metode Pembayaran -->
                 <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="paymentMethod" class="form-label">Metode Pembayaran</label>
+                        <select id="paymentMethod" class="form-select">
+                            <option value="cash">Cash</option>
+                            <option value="non-cash">Non-Cash</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="row mb-3" id="paymentDetails">
                     <div class="col-md-6">
                         <label for="paymentAmount" class="form-label">Jumlah Uang</label>
                         <input type="number" id="paymentAmount" class="form-control" min="0">
                     </div>
                 </div>
+
                 <div class="row mb-3">
                     <div class="col-md-6">
                         <label for="changeAmount" class="form-label">Kembalian</label>
@@ -212,16 +224,22 @@
         // Proses pembayaran
         function processPayment() {
             const totalPayment = cart.reduce((sum, item) => sum + item.total, 0);
+            const paymentMethod = document.getElementById("paymentMethod").value;
             const paymentAmount = parseInt(document.getElementById("paymentAmount").value, 10);
 
-            if (paymentAmount < totalPayment) {
-                Swal.fire("Error", "Jumlah uang kurang dari total pembayaran!", "error");
-                return;
-            }
+            if (paymentMethod === "cash") {
+                if (paymentAmount < totalPayment) {
+                    Swal.fire("Error", "Jumlah uang kurang dari total pembayaran!", "error");
+                    return;
+                }
 
-            const change = paymentAmount - totalPayment;
-            document.getElementById("changeAmount").value = `Rp ${change}`;
-            Swal.fire("Sukses", "Pembayaran berhasil diproses!", "success");
+                const change = paymentAmount - totalPayment;
+                document.getElementById("changeAmount").value = `Rp ${change}`;
+                Swal.fire("Sukses", "Pembayaran berhasil dengan uang tunai!", "success");
+
+            } else if (paymentMethod === "non-cash") {
+                Swal.fire("Sukses", "Pembayaran non-cash akan diproses lebih lanjut!", "info");
+            }
         }
 
         // Inisialisasi
