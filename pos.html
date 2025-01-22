@@ -15,7 +15,7 @@
 </head>
 <body>
     <div class="container mt-4">
-        <h2>Halaman POS</h2>
+        <h2 class="text-center">POS Sistem</h2>
         <hr>
 
         <!-- Form Transaksi -->
@@ -38,9 +38,7 @@
                     </select>
                 </div>
             </div>
-            <div id="customerDetails" class="row mb-3">
-                <!-- Detail pelanggan dimuat di sini -->
-            </div>
+            <div id="customerDetails" class="row mb-3"></div>
 
             <!-- Pilih Produk -->
             <div class="row mb-3">
@@ -54,6 +52,9 @@
                     <label for="productQuantity" class="form-label">Jumlah</label>
                     <input type="number" id="productQuantity" class="form-control" min="1" value="1">
                 </div>
+                <div class="col-md-3">
+                    <button type="button" id="addToCartButton" class="btn btn-primary mt-4">Tambah ke Keranjang</button>
+                </div>
             </div>
 
             <!-- Diskon -->
@@ -65,7 +66,6 @@
                 <div class="col-md-6">
                     <label for="discountType" class="form-label">Tipe Diskon</label>
                     <select id="discountType" class="form-select">
-                        <option value="none">Tanpa Diskon</option>
                         <option value="percent">Persen (%)</option>
                         <option value="rupiah">Rupiah</option>
                     </select>
@@ -99,9 +99,6 @@
                     <input type="text" id="changeAmount" class="form-control" readonly>
                 </div>
             </div>
-
-            <!-- Tombol Tambah ke Keranjang -->
-            <button type="button" id="addToCartButton" class="btn btn-primary">Tambah ke Keranjang</button>
         </form>
 
         <!-- Keranjang -->
@@ -119,9 +116,7 @@
                         <th>Aksi</th>
                     </tr>
                 </thead>
-                <tbody id="cartTableBody">
-                    <!-- Keranjang dimuat di sini -->
-                </tbody>
+                <tbody id="cartTableBody"></tbody>
             </table>
             <div class="text-end">
                 <h5>Total Pembayaran: <span id="totalPayment">Rp 0</span></h5>
@@ -135,54 +130,10 @@
     </div>
 
     <script>
-        // ID Transaksi unik otomatis
         function generateTransactionId() {
             return `TRX-${Date.now()}`;
         }
 
-        // Muat pelanggan berdasarkan role
-        function loadCustomerDetails(role) {
-            const customerDetailsContainer = document.getElementById("customerDetails");
-            customerDetailsContainer.innerHTML = "";
-
-            if (role === "umum") {
-                customerDetailsContainer.innerHTML = `
-                    <div class="col-md-6">
-                        <label for="customerName" class="form-label">Nama Pelanggan</label>
-                        <input type="text" id="customerName" class="form-control">
-                    </div>
-                    <div class="col-md-6">
-                        <label for="customerContact" class="form-label">No Handphone</label>
-                        <input type="text" id="customerContact" class="form-control">
-                    </div>
-                    <div class="col-md-6 mt-3">
-                        <label for="customerEmail" class="form-label">Email</label>
-                        <input type="email" id="customerEmail" class="form-control">
-                    </div>
-                    <div class="col-md-6 mt-3">
-                        <label for="customerAddress" class="form-label">Alamat</label>
-                        <textarea id="customerAddress" class="form-control"></textarea>
-                    </div>
-                `;
-            } else {
-                const customers = JSON.parse(localStorage.getItem("customers")) || [];
-                const filteredCustomers = customers.filter(cust => cust.role === role);
-
-                customerDetailsContainer.innerHTML = `
-                    <div class="col-md-6">
-                        <label for="customerSelect" class="form-label">Pilih Pelanggan</label>
-                        <select id="customerSelect" class="form-select">
-                            <option value="">Pilih Pelanggan</option>
-                            ${filteredCustomers.map(cust => `
-                                <option value="${cust.id}">${cust.name}</option>
-                            `).join("")}
-                        </select>
-                    </div>
-                `;
-            }
-        }
-
-        // Muat produk
         function loadProducts() {
             const products = JSON.parse(localStorage.getItem("products")) || [];
             const productSelect = document.getElementById("product");
@@ -195,20 +146,36 @@
             });
         }
 
-        // Toggle Diskon
-        document.getElementById("enableDiscount").addEventListener("change", function () {
-            const discountSection = document.getElementById("discountSection");
-            discountSection.classList.toggle("d-none", !this.checked);
-        });
+        function loadCustomerDetails(role) {
+            const container = document.getElementById("customerDetails");
+            container.innerHTML = "";
 
-        // Toggle Metode Pembayaran
-        document.getElementById("paymentMethodSwitch").addEventListener("change", function () {
-            const paymentDetails = document.getElementById("paymentDetails");
-            paymentDetails.classList.toggle("d-none", !this.checked);
-        });
+            if (role === "umum") {
+                container.innerHTML = `
+                    <div class="col-md-6">
+                        <label for="customerName" class="form-label">Nama Pelanggan</label>
+                        <input type="text" id="customerName" class="form-control">
+                    </div>
+                `;
+            } else {
+                const customers = JSON.parse(localStorage.getItem("customers")) || [];
+                const filtered = customers.filter(cust => cust.role === role);
 
-        // Inisialisasi
-        document.addEventListener("DOMContentLoaded", function () {
+                container.innerHTML = `
+                    <div class="col-md-6">
+                        <label for="customerSelect" class="form-label">Pilih Pelanggan</label>
+                        <select id="customerSelect" class="form-select">
+                            <option value="">Pilih Pelanggan</option>
+                            ${filtered.map(cust => `
+                                <option value="${cust.id}">${cust.name}</option>
+                            `).join("")}
+                        </select>
+                    </div>
+                `;
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
             document.getElementById("transactionId").value = generateTransactionId();
             loadProducts();
 
