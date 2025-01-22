@@ -3,103 +3,77 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>POS Sistem</title>
+    <title>POS dengan Sistem Otomatis</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <style>
-        .form-switch .form-check-input {
-            width: 2.5em;
-            height: 1.5em;
-        }
-    </style>
 </head>
 <body>
     <div class="container mt-4">
-        <h2 class="text-center">POS Sistem</h2>
+        <h2>Sistem POS</h2>
         <hr>
 
         <!-- Form Transaksi -->
-        <form id="posForm">
-            <!-- ID Transaksi -->
-            <div class="mb-3">
-                <label for="transactionId" class="form-label">ID Transaksi</label>
-                <input type="text" id="transactionId" class="form-control" readonly>
-            </div>
+        <div class="mt-4">
+            <h4>Form Transaksi</h4>
+            <form id="posForm">
+                <!-- ID Transaksi -->
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="transactionId" class="form-label">ID Transaksi</label>
+                        <input type="text" id="transactionId" class="form-control" readonly>
+                    </div>
+                </div>
 
-            <!-- Pilih Pelanggan -->
-            <div class="row mb-3">
-                <div class="col-md-6">
-                    <label for="customerRole" class="form-label">Role Pelanggan</label>
-                    <select id="customerRole" class="form-select">
-                        <option value="">Pilih Role</option>
-                        <option value="umum">Umum</option>
-                        <option value="pelsem">PelSem</option>
-                        <option value="pelmem">PelMem</option>
-                    </select>
+                <!-- Pilih Pelanggan -->
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="customerRole" class="form-label">Role Pelanggan</label>
+                        <select id="customerRole" class="form-select">
+                            <option value="">Pilih Role</option>
+                            <option value="umum">Umum</option>
+                            <option value="pelsem">PelSem</option>
+                            <option value="pelmem">PelMem</option>
+                        </select>
+                    </div>
                 </div>
-            </div>
-            <div id="customerDetails" class="row mb-3"></div>
+                <div id="customerDetails" class="row mb-3">
+                    <!-- Detail pelanggan akan dimuat otomatis atau manual -->
+                </div>
 
-            <!-- Pilih Produk -->
-            <div class="row mb-3">
-                <div class="col-md-6">
-                    <label for="product" class="form-label">Pilih Produk</label>
-                    <select id="product" class="form-select">
-                        <!-- Produk dimuat dari localStorage -->
-                    </select>
+                <!-- Pilih Produk -->
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="product" class="form-label">Pilih Produk</label>
+                        <select id="product" class="form-select">
+                            <!-- Produk dimuat dari localStorage -->
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="productQuantity" class="form-label">Jumlah</label>
+                        <input type="number" id="productQuantity" class="form-control" min="1" value="1">
+                    </div>
                 </div>
-                <div class="col-md-3">
-                    <label for="productQuantity" class="form-label">Jumlah</label>
-                    <input type="number" id="productQuantity" class="form-control" min="1" value="1">
-                </div>
-                <div class="col-md-3">
-                    <button type="button" id="addToCartButton" class="btn btn-primary mt-4">Tambah ke Keranjang</button>
-                </div>
-            </div>
 
-            <!-- Diskon -->
-            <div class="mb-3 form-switch">
-                <input class="form-check-input" type="checkbox" id="enableDiscount">
-                <label class="form-check-label" for="enableDiscount">Aktifkan Diskon</label>
-            </div>
-            <div id="discountSection" class="row mb-3 d-none">
-                <div class="col-md-6">
-                    <label for="discountType" class="form-label">Tipe Diskon</label>
-                    <select id="discountType" class="form-select">
-                        <option value="percent">Persen (%)</option>
-                        <option value="rupiah">Rupiah</option>
-                    </select>
+                <!-- Diskon -->
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="discountType" class="form-label">Diskon</label>
+                        <select id="discountType" class="form-select">
+                            <option value="none">Tanpa Diskon</option>
+                            <option value="percent">Persen (%)</option>
+                            <option value="rupiah">Rupiah</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="discountValue" class="form-label">Nilai Diskon</label>
+                        <input type="number" id="discountValue" class="form-control" value="0" min="0">
+                    </div>
                 </div>
-                <div class="col-md-6">
-                    <label for="discountValue" class="form-label">Nilai Diskon</label>
-                    <input type="number" id="discountValue" class="form-control" value="0" min="0">
-                </div>
-            </div>
 
-            <!-- Metode Pembayaran -->
-            <div class="mb-3 form-switch">
-                <input class="form-check-input" type="checkbox" id="paymentMethodSwitch">
-                <label class="form-check-label" for="paymentMethodSwitch">Non-Cash</label>
-            </div>
-            <div id="paymentDetails" class="row mb-3 d-none">
-                <div class="col-md-6">
-                    <label for="paymentProof" class="form-label">Upload Bukti Pembayaran</label>
-                    <input type="file" id="paymentProof" class="form-control">
-                </div>
-            </div>
-
-            <!-- Pembayaran -->
-            <div id="paymentSection" class="row mb-3">
-                <div class="col-md-6">
-                    <label for="amountPaid" class="form-label">Jumlah Dibayar</label>
-                    <input type="number" id="amountPaid" class="form-control" min="0">
-                </div>
-                <div class="col-md-6">
-                    <label for="changeAmount" class="form-label">Kembalian</label>
-                    <input type="text" id="changeAmount" class="form-control" readonly>
-                </div>
-            </div>
-        </form>
+                <!-- Tambah ke Keranjang -->
+                <button type="button" id="addToCartButton" class="btn btn-primary">Tambah ke Keranjang</button>
+            </form>
+        </div>
 
         <!-- Keranjang -->
         <div class="mt-5">
@@ -116,24 +90,67 @@
                         <th>Aksi</th>
                     </tr>
                 </thead>
-                <tbody id="cartTableBody"></tbody>
+                <tbody id="cartTableBody">
+                    <!-- Keranjang akan dimuat di sini -->
+                </tbody>
             </table>
             <div class="text-end">
                 <h5>Total Pembayaran: <span id="totalPayment">Rp 0</span></h5>
             </div>
         </div>
-
-        <!-- Tombol Cetak Struk -->
-        <div class="text-end mt-4">
-            <button type="button" id="printReceipt" class="btn btn-success">Cetak Struk</button>
-        </div>
     </div>
 
     <script>
+        // ID Transaksi unik otomatis
         function generateTransactionId() {
             return `TRX-${Date.now()}`;
         }
 
+        // Muat pelanggan berdasarkan role
+        function loadCustomerDetails(role) {
+            const customerDetailsContainer = document.getElementById("customerDetails");
+            customerDetailsContainer.innerHTML = "";
+
+            if (role === "umum") {
+                // Input manual
+                customerDetailsContainer.innerHTML = `
+                    <div class="col-md-6">
+                        <label for="customerName" class="form-label">Nama Pelanggan</label>
+                        <input type="text" id="customerName" class="form-control">
+                    </div>
+                    <div class="col-md-6">
+                        <label for="customerContact" class="form-label">No Handphone</label>
+                        <input type="text" id="customerContact" class="form-control">
+                    </div>
+                    <div class="col-md-6 mt-3">
+                        <label for="customerEmail" class="form-label">Email</label>
+                        <input type="email" id="customerEmail" class="form-control">
+                    </div>
+                    <div class="col-md-6 mt-3">
+                        <label for="customerAddress" class="form-label">Alamat</label>
+                        <textarea id="customerAddress" class="form-control"></textarea>
+                    </div>
+                `;
+            } else {
+                // Muat data pelanggan dari localStorage
+                const customers = JSON.parse(localStorage.getItem("customers")) || [];
+                const filteredCustomers = customers.filter(cust => cust.role === role);
+
+                customerDetailsContainer.innerHTML = `
+                    <div class="col-md-6">
+                        <label for="customerSelect" class="form-label">Pilih Pelanggan</label>
+                        <select id="customerSelect" class="form-select">
+                            <option value="">Pilih Pelanggan</option>
+                            ${filteredCustomers.map(cust => `
+                                <option value="${cust.id}">${cust.name}</option>
+                            `).join("")}
+                        </select>
+                    </div>
+                `;
+            }
+        }
+
+        // Muat produk dari localStorage
         function loadProducts() {
             const products = JSON.parse(localStorage.getItem("products")) || [];
             const productSelect = document.getElementById("product");
@@ -146,36 +163,50 @@
             });
         }
 
-        function loadCustomerDetails(role) {
-            const container = document.getElementById("customerDetails");
-            container.innerHTML = "";
+        // Tambahkan produk ke keranjang
+        document.getElementById("addToCartButton").addEventListener("click", function () {
+            const productSelect = document.getElementById("product");
+            const quantity = parseInt(document.getElementById("productQuantity").value, 10);
+            const discountType = document.getElementById("discountType").value;
+            const discountValue = parseInt(document.getElementById("discountValue").value, 10) || 0;
 
-            if (role === "umum") {
-                container.innerHTML = `
-                    <div class="col-md-6">
-                        <label for="customerName" class="form-label">Nama Pelanggan</label>
-                        <input type="text" id="customerName" class="form-control">
-                    </div>
-                `;
-            } else {
-                const customers = JSON.parse(localStorage.getItem("customers")) || [];
-                const filtered = customers.filter(cust => cust.role === role);
-
-                container.innerHTML = `
-                    <div class="col-md-6">
-                        <label for="customerSelect" class="form-label">Pilih Pelanggan</label>
-                        <select id="customerSelect" class="form-select">
-                            <option value="">Pilih Pelanggan</option>
-                            ${filtered.map(cust => `
-                                <option value="${cust.id}">${cust.name}</option>
-                            `).join("")}
-                        </select>
-                    </div>
-                `;
+            if (!productSelect.value || quantity <= 0) {
+                Swal.fire("Error", "Pilih produk dan masukkan jumlah yang valid!", "error");
+                return;
             }
-        }
 
-        document.addEventListener("DOMContentLoaded", () => {
+            const products = JSON.parse(localStorage.getItem("products")) || [];
+            const product = products.find(prod => prod.id === productSelect.value);
+
+            // Perhitungan diskon
+            let discount = 0;
+            if (discountType === "percent") {
+                discount = (product.price * discountValue / 100) * quantity;
+            } else if (discountType === "rupiah") {
+                discount = discountValue * quantity;
+            }
+
+            const total = (product.price * quantity) - discount;
+
+            // Tambahkan ke tabel keranjang
+            const cartTableBody = document.getElementById("cartTableBody");
+            const row = document.createElement("tr");
+            row.innerHTML = `
+                <td>${cartTableBody.children.length + 1}</td>
+                <td>${product.name}</td>
+                <td>Rp ${product.price}</td>
+                <td>${quantity}</td>
+                <td>${discountType === "none" ? "0" : discountValue} ${discountType === "percent" ? "%" : "Rp"}</td>
+                <td>Rp ${total}</td>
+                <td><button class="btn btn-danger btn-sm">Hapus</button></td>
+            `;
+            cartTableBody.appendChild(row);
+
+            Swal.fire("Sukses", "Produk berhasil ditambahkan ke keranjang!", "success");
+        });
+
+        // Inisialisasi
+        document.addEventListener("DOMContentLoaded", function () {
             document.getElementById("transactionId").value = generateTransactionId();
             loadProducts();
 
