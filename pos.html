@@ -20,7 +20,7 @@
             </div>
             <div class="col-md-6">
                 <label for="customerRole" class="form-label">Role Pelanggan</label>
-                <select id="customerRole" class="form-select">
+                <select id="customerRole" class="form-select" onchange="loadCustomerData()">
                     <option value="umum">Umum</option>
                     <option value="pelsem">PelSem</option>
                     <option value="pelmem">PelMem</option>
@@ -28,14 +28,12 @@
             </div>
         </div>
 
+        <div id="customerDetails" class="mb-3"></div>
+
         <div class="row mb-3">
             <div class="col-md-6">
                 <label for="productSelect" class="form-label">Pilih Produk</label>
-                <select id="productSelect" class="form-select">
-                    <option value="product1">Produk A - Rp 50,000</option>
-                    <option value="product2">Produk B - Rp 75,000</option>
-                    <option value="product3">Produk C - Rp 100,000</option>
-                </select>
+                <select id="productSelect" class="form-select"></select>
             </div>
             <div class="col-md-6">
                 <label for="quantity" class="form-label">Jumlah</label>
@@ -66,6 +64,55 @@
 <!-- Script -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10.16.7/dist/sweetalert2.all.min.js"></script>
 <script>
+    // Simulasi database pelanggan dan produk
+    const customers = [
+        
+    ];
+
+    const products = [
+        
+    ];
+
+    // Fungsi untuk memuat data pelanggan berdasarkan role
+    function loadCustomerData() {
+        const role = document.getElementById("customerRole").value;
+        const customerDetails = document.getElementById("customerDetails");
+
+        if (role === 'umum') {
+            customerDetails.innerHTML = `
+                <label for="customerName" class="form-label">Nama Pelanggan</label>
+                <input type="text" id="customerName" class="form-control mb-2">
+                <label for="customerPhone" class="form-label">No. Handphone</label>
+                <input type="text" id="customerPhone" class="form-control mb-2">
+                <label for="customerEmail" class="form-label">Email</label>
+                <input type="email" id="customerEmail" class="form-control mb-2">
+                <label for="customerAddress" class="form-label">Alamat</label>
+                <input type="text" id="customerAddress" class="form-control">
+            `;
+        } else {
+            const customer = customers.find(c => c.role === role);
+            customerDetails.innerHTML = `
+                <p><strong>ID Pelanggan:</strong> ${customer.id}</p>
+                <p><strong>Nama:</strong> ${customer.name}</p>
+                <p><strong>No. Handphone:</strong> ${customer.phone}</p>
+                <p><strong>Email:</strong> ${customer.email}</p>
+                <p><strong>Alamat:</strong> ${customer.address}</p>
+            `;
+        }
+    }
+
+    // Fungsi untuk memuat daftar produk ke dalam dropdown
+    function loadProductData() {
+        const productSelect = document.getElementById("productSelect");
+        productSelect.innerHTML = '';
+        products.forEach(product => {
+            const option = document.createElement("option");
+            option.value = product.id;
+            option.textContent = `${product.name} - Rp ${product.price.toLocaleString()}`;
+            productSelect.appendChild(option);
+        });
+    }
+
     // Fungsi untuk menghasilkan ID transaksi otomatis
     function generateTransactionId() {
         return 'TRX-' + new Date().getTime();
@@ -74,23 +121,20 @@
     // Fungsi untuk menambahkan produk ke keranjang
     function addToCart() {
         const productSelect = document.getElementById("productSelect");
-        const selectedProduct = productSelect.options[productSelect.selectedIndex].text.split(" - ");
-        const productName = selectedProduct[0];
-        const productPrice = parseInt(selectedProduct[1].replace("Rp ", "").replace(",", ""));
-
+        const selectedProduct = products.find(p => p.id === productSelect.value);
         const quantity = parseInt(document.getElementById("quantity").value) || 1;
         const discount = 0; // Default diskon saat pertama kali dimasukkan
-        const total = productPrice * quantity;
+        const total = selectedProduct.price * quantity;
 
         const cartTable = document.getElementById("cartItems");
         const row = document.createElement("tr");
 
         row.innerHTML = `
-            <td>${productName}</td>
-            <td>Rp ${productPrice}</td>
+            <td>${selectedProduct.name}</td>
+            <td>Rp ${selectedProduct.price.toLocaleString()}</td>
             <td contenteditable="true" oninput="updateTotal(this)">1</td>
             <td contenteditable="true" oninput="updateTotal(this)">0</td>
-            <td>Rp ${total}</td>
+            <td>Rp ${total.toLocaleString()}</td>
             <td><button class="btn btn-danger btn-sm" onclick="removeItem(this)">Hapus</button></td>
         `;
         cartTable.appendChild(row);
@@ -104,7 +148,7 @@
         const discount = parseInt(row.cells[3].textContent) || 0;
 
         const total = price * quantity * (1 - discount / 100);
-        row.cells[4].textContent = `Rp ${total.toFixed(0)}`;
+        row.cells[4].textContent = `Rp ${total.toLocaleString()}`;
     }
 
     // Fungsi untuk menghapus item dari keranjang
@@ -113,31 +157,10 @@
         row.parentNode.removeChild(row);
     }
 
-    // Fungsi untuk memproses pembayaran
-    function processPayment() {
-        const cartTable = document.getElementById("cartItems");
-        const rows = cartTable.getElementsByTagName("tr");
-
-        let totalPayment = 0;
-        for (let row of rows) {
-            const total = parseInt(row.cells[4].textContent.replace("Rp ", "").replace(",", ""));
-            totalPayment += total;
-        }
-
-        const paymentAmount = parseInt(prompt(`Total Pembayaran: Rp ${totalPayment}. Masukkan jumlah pembayaran:`));
-
-        if (paymentAmount >= totalPayment) {
-            const change = paymentAmount - totalPayment;
-            Swal.fire("Pembayaran Sukses", `Pembayaran Anda Lunas. Kembalian: Rp ${change}`, "success");
-        } else {
-            Swal.fire("Pembayaran Gagal", "Jumlah pembayaran kurang.", "error");
-        }
-    }
-
     // Event Listener
     document.getElementById("transactionId").value = generateTransactionId();
     document.getElementById("addToCart").addEventListener("click", addToCart);
-    document.getElementById("processPayment").addEventListener("click", processPayment);
+    loadProductData(); // Muat data produk saat halaman dimuat
 </script>
 
 </body>
