@@ -221,7 +221,17 @@
             updateCart();
         }
 
-        // Memproses pembayaran dan menyimpan transaksi
+        // Menangani perubahan metode pembayaran
+        function handlePaymentMethodChange() {
+            const paymentMethod = document.getElementById('paymentMethod').value;
+            if (paymentMethod === 'bank_transfer' || paymentMethod === 'ewallet') {
+                document.getElementById('paymentProofSection').style.display = 'block';
+            } else {
+                document.getElementById('paymentProofSection').style.display = 'none';
+            }
+        }
+
+        // Proses pembayaran dan simpan transaksi
         function processPayment() {
             const paymentMethod = document.getElementById('paymentMethod').value;
             const paymentProof = document.getElementById('paymentProof').files[0];
@@ -232,12 +242,11 @@
                 status = 'Lunas';
             } else if (paymentMethod === 'bank_transfer' || paymentMethod === 'ewallet') {
                 if (paymentProof) {
-                    // Upload file bukti pembayaran (misal menggunakan FileReader atau server)
                     proofUrl = URL.createObjectURL(paymentProof);
                 }
             }
 
-            // Menyimpan transaksi
+            // Simpan transaksi
             const transaction = {
                 id: `T-${Date.now()}`,
                 customerName: document.getElementById('customerName').value,
@@ -272,20 +281,7 @@
             });
         }
 
-        // Menampilkan formulir pelanggan berdasarkan peran yang dipilih
-        function toggleCustomerForm() {
-            const customerRole = document.getElementById('customerRole').value;
-            if (customerRole === "umum") {
-                document.getElementById('customerForm').style.display = "block";
-                document.getElementById('connectedCustomerForm').style.display = "none";
-            } else {
-                document.getElementById('customerForm').style.display = "none";
-                document.getElementById('connectedCustomerForm').style.display = "block";
-                loadCustomers(customerRole); // Memuat pelanggan berdasarkan peran yang dipilih
-            }
-        }
-
-        // Memuat data awal
+        // Memuat produk dan transaksi saat halaman pertama kali dimuat
         loadProducts();
         updateTransactionHistory();
     </script>
