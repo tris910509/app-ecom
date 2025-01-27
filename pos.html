@@ -27,7 +27,7 @@
                 <div class="row mb-3">
                     <div class="col-md-6">
                         <label for="transactionId" class="form-label">ID Transaksi</label>
-                        <input type="text" id="transactionId" class="form-control" readonly value="">
+                        <input type="text" id="transactionId" class="form-control" readonly>
                     </div>
                     <div class="col-md-6">
                         <label for="customerRole" class="form-label">Role Pelanggan</label>
@@ -40,13 +40,14 @@
                     </div>
                 </div>
                 <div id="customerDetails" class="row mb-3">
-                    <!-- Form Umum diisi manual -->
+                    <!-- Form untuk data pelanggan akan ditampilkan di sini -->
                 </div>
+
                 <div class="row mb-3">
                     <div class="col-md-6">
                         <label for="product" class="form-label">Pilih Produk</label>
-                        <select id="product" class="form-select">
-                            <!-- Produk akan dimuat secara dinamis -->
+                        <select id="product" class="form-select" required>
+                            <option value="">Pilih Produk</option>
                         </select>
                     </div>
                     <div class="col-md-6">
@@ -54,6 +55,7 @@
                         <input type="number" id="productQuantity" class="form-control" min="1" value="1">
                     </div>
                 </div>
+
                 <div class="row mb-3">
                     <div class="col-md-6">
                         <div class="switch">
@@ -66,6 +68,7 @@
                         <input type="number" id="expeditionFee" class="form-control" value="0">
                     </div>
                 </div>
+
                 <button type="button" id="addToCartButton" class="btn btn-primary">Tambah ke Keranjang</button>
             </form>
         </div>
@@ -86,7 +89,7 @@
                     </tr>
                 </thead>
                 <tbody id="cartTableBody">
-                    <!-- Daftar produk di keranjang akan dimuat di sini -->
+                    <!-- Keranjang akan dimuat disini -->
                 </tbody>
             </table>
             <div class="text-end">
@@ -124,7 +127,6 @@
                         <th>ID Transaksi</th>
                         <th>Total Pembayaran</th>
                         <th>Status</th>
-                        <th>Aksi</th>
                     </tr>
                 </thead>
                 <tbody id="historyTableBody">
@@ -135,200 +137,221 @@
     </div>
 
     <script>
-        // Data pelanggan, produk, dan transaksi
-        document.addEventListener("DOMContentLoaded", () => {
-    const transactionId = document.getElementById("transactionId");
-    const customerRole = document.getElementById("customerRole");
-    const customerDetails = document.getElementById("customerDetails");
-    const productSelect = document.getElementById("product");
-    const productQuantity = document.getElementById("productQuantity");
-    const discountType = document.getElementById("discountType");
-    const discountValue = document.getElementById("discountValue");
-    const useExpedition = document.getElementById("useExpedition");
-    const expeditionFee = document.getElementById("expeditionFee");
-    const cartTableBody = document.getElementById("cartTableBody");
-    const totalPayment = document.getElementById("totalPayment");
-    const paymentMethodRadios = document.getElementsByName("paymentMethod");
-    const historyTableBody = document.getElementById("historyTableBody");
-    const addToCartButton = document.getElementById("addToCartButton");
-    const completeTransactionButton = document.getElementById("completeTransactionButton");
+        // Simulasi Data Pelanggan dan Produk
+        const customers = JSON.parse(localStorage.getItem('customers')) || [
+            { id: "C001", name: "PelSem User", role: "pelsem", phone: "08123456789", email: "pelsem@example.com", address: "Jl. Pelsem", discount: 5 },
+            { id: "C002", name: "PelMem User", role: "pelmem", phone: "08123456789", email: "pelmem@example.com", address: "Jl. PelMem", discount: 10 }
+        ];
 
-    let cart = [];
-    let transactionHistory = JSON.parse(localStorage.getItem("transactionHistory")) || [];
+        const products = JSON.parse(localStorage.getItem('products')) || [
+            { id: "P001", name: "Produk A", price: 50000 },
+            { id: "P002", name: "Produk B", price: 100000 }
+        ];
 
-    // Data pelanggan dan produk (simulasi)
-    const customers = [
-    ];
+        let cart = [];
 
-    const products = [
-        
-    ];
+        // ID transaksi unik otomatis
+        function generateTransactionId() {
+            return `TRX-${Date.now()}`;
+        }
 
-    // Generate ID unik untuk transaksi
-    function generateTransactionId() {
-        const timestamp = Date.now();
-        return `TRX${timestamp}`;
-    }
+        // Muat produk ke dropdown
+        function loadProducts() {
+            const productSelect = document.getElementById('product');
+            productSelect.innerHTML = '<option value="">Pilih Produk</option>';
+            products.forEach(product => {
+                const option = document.createElement('option');
+                option.value = product.id;
+                option.textContent = `${product.name} - Rp ${product.price}`;
+                productSelect.appendChild(option);
+            });
+        }
 
-    // Load produk ke dalam dropdown
-    function loadProducts() {
-        productSelect.innerHTML = `<option value="">Pilih Produk</option>`;
-        products.forEach(product => {
-            productSelect.innerHTML += `<option value="${product.id}">${product.name} - Rp ${product.price.toLocaleString()}</option>`;
-        });
-    }
+        // Menampilkan data pelanggan berdasarkan role
+        document.getElementById('customerRole').addEventListener('change', function () {
+            const role = this.value;
+            const customerDetails = document.getElementById('customerDetails');
+            customerDetails.innerHTML = '';
 
-    // Tampilkan detail pelanggan berdasarkan role
-    customerRole.addEventListener("change", () => {
-        const selectedRole = customerRole.value;
-        customerDetails.innerHTML = "";
-
-        if (selectedRole === "umum") {
-            customerDetails.innerHTML = `
-                <div class="col-md-6">
-                    <label for="customerName" class="form-label">Nama Pelanggan</label>
-                    <input type="text" id="customerName" class="form-control" required>
-                </div>
-                <div class="col-md-6">
-                    <label for="customerPhone" class="form-label">No. Handphone</label>
-                    <input type="text" id="customerPhone" class="form-control" required>
-                </div>
-                <div class="col-md-6 mt-3">
-                    <label for="customerEmail" class="form-label">Email</label>
-                    <input type="email" id="customerEmail" class="form-control">
-                </div>
-                <div class="col-md-6 mt-3">
-                    <label for="customerAddress" class="form-label">Alamat</label>
-                    <input type="text" id="customerAddress" class="form-control">
-                </div>
-            `;
-        } else {
-            const customer = customers.find(c => c.role === selectedRole);
-            if (customer) {
+            if (role === 'umum') {
                 customerDetails.innerHTML = `
                     <div class="col-md-6">
-                        <label class="form-label">Nama Pelanggan</label>
-                        <input type="text" class="form-control" value="${customer.name}" readonly>
+                        <label for="customerName" class="form-label">Nama Pelanggan</label>
+                        <input type="text" id="customerName" class="form-control" required>
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label">No. Handphone</label>
-                        <input type="text" class="form-control" value="${customer.phone}" readonly>
+                        <label for="customerPhone" class="form-label">No Handphone</label>
+                        <input type="text" id="customerPhone" class="form-control" required>
                     </div>
-                    <div class="col-md-6 mt-3">
-                        <label class="form-label">Email</label>
-                        <input type="text" class="form-control" value="${customer.email}" readonly>
+                    <div class="col-md-6">
+                        <label for="customerEmail" class="form-label">Email</label>
+                        <input type="email" id="customerEmail" class="form-control" required>
                     </div>
-                    <div class="col-md-6 mt-3">
-                        <label class="form-label">Alamat</label>
-                        <input type="text" class="form-control" value="${customer.address}" readonly>
+                    <div class="col-md-6">
+                        <label for="customerAddress" class="form-label">Alamat</label>
+                        <input type="text" id="customerAddress" class="form-control" required>
                     </div>
                 `;
+            } else {
+                const filteredCustomers = customers.filter(c => c.role === role);
+                if (filteredCustomers.length > 0) {
+                    const customer = filteredCustomers[0]; // Ambil pelanggan pertama sesuai role
+                    customerDetails.innerHTML = `
+                        <div class="col-md-6">
+                            <label for="customerName" class="form-label">Nama</label>
+                            <input type="text" class="form-control" value="${customer.name}" readonly>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="customerPhone" class="form-label">No Handphone</label>
+                            <input type="text" class="form-control" value="${customer.phone}" readonly>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="customerEmail" class="form-label">Email</label>
+                            <input type="text" class="form-control" value="${customer.email}" readonly>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="customerAddress" class="form-label">Alamat</label>
+                            <input type="text" class="form-control" value="${customer.address}" readonly>
+                        </div>
+                    `;
+                }
+            }
+        });
+
+        // Menambahkan produk ke keranjang
+        document.getElementById('addToCartButton').addEventListener('click', function () {
+            const productId = document.getElementById('product').value;
+            const productQuantity = parseInt(document.getElementById('productQuantity').value);
+            const product = products.find(p => p.id === productId);
+
+            if (product && productQuantity > 0) {
+                const existingProductIndex = cart.findIndex(item => item.product.id === productId);
+                if (existingProductIndex > -1) {
+                    cart[existingProductIndex].quantity += productQuantity;
+                } else {
+                    cart.push({
+                        product: product,
+                        quantity: productQuantity,
+                        discount: 0
+                    });
+                }
+
+                loadCart();
+                updateTotalPayment();
+            } else {
+                Swal.fire('Peringatan', 'Silakan pilih produk dan jumlah yang valid!', 'warning');
+            }
+        });
+
+        // Memuat keranjang
+        function loadCart() {
+            const cartTableBody = document.getElementById('cartTableBody');
+            cartTableBody.innerHTML = '';
+
+            cart.forEach((item, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td>${item.product.name}</td>
+                    <td>Rp ${item.product.price}</td>
+                    <td>
+                        <input type="number" value="${item.quantity}" class="form-control" data-index="${index}" onchange="updateQuantity(event)">
+                    </td>
+                    <td>
+                        <input type="number" value="${item.discount}" class="form-control" data-index="${index}" onchange="updateDiscount(event)">
+                    </td>
+                    <td>Rp ${(item.product.price * item.quantity) - item.discount}</td>
+                    <td>
+                        <button class="btn btn-danger" onclick="removeFromCart(${index})">Hapus</button>
+                    </td>
+                `;
+                cartTableBody.appendChild(row);
+            });
+        }
+
+        // Update jumlah produk
+        function updateQuantity(event) {
+            const index = event.target.dataset.index;
+            const newQuantity = parseInt(event.target.value);
+            if (newQuantity > 0) {
+                cart[index].quantity = newQuantity;
+                loadCart();
+                updateTotalPayment();
             }
         }
-    });
 
-    // Tambahkan produk ke keranjang
-    addToCartButton.addEventListener("click", () => {
-        const productId = productSelect.value;
-        const quantity = parseInt(productQuantity.value);
-        const discount = parseFloat(discountValue.value);
-        const isDiscountPercent = discountType.checked;
-
-        if (!productId || quantity <= 0) {
-            Swal.fire("Peringatan", "Harap pilih produk dan masukkan jumlah yang valid!", "warning");
-            return;
+        // Update diskon produk
+        function updateDiscount(event) {
+            const index = event.target.dataset.index;
+            const newDiscount = parseInt(event.target.value);
+            if (newDiscount >= 0) {
+                cart[index].discount = newDiscount;
+                loadCart();
+                updateTotalPayment();
+            }
         }
 
-        const product = products.find(p => p.id === productId);
-        if (product) {
-            const price = product.price;
-            const discountAmount = isDiscountPercent ? (price * discount / 100) : discount;
-            const total = (price - discountAmount) * quantity;
-
-            cart.push({ productId, name: product.name, price, quantity, discount, total });
-            updateCart();
+        // Menghapus produk dari keranjang
+        function removeFromCart(index) {
+            cart.splice(index, 1);
+            loadCart();
+            updateTotalPayment();
         }
-    });
 
-    // Update tabel keranjang
-    function updateCart() {
-        cartTableBody.innerHTML = "";
-        let totalCost = 0;
+        // Menghitung total pembayaran
+        function updateTotalPayment() {
+            let total = 0;
+            cart.forEach(item => {
+                total += (item.product.price * item.quantity) - item.discount;
+            });
 
-        cart.forEach((item, index) => {
-            totalCost += item.total;
+            const expeditionFee = document.getElementById('expeditionFee').value;
+            if (document.getElementById('useExpedition').checked) {
+                total += parseInt(expeditionFee);
+            }
 
-            cartTableBody.innerHTML += `
-                <tr>
-                    <td>${index + 1}</td>
-                    <td>${item.name}</td>
-                    <td>Rp ${item.price.toLocaleString()}</td>
-                    <td>${item.quantity}</td>
-                    <td>${item.discount}</td>
-                    <td>Rp ${item.total.toLocaleString()}</td>
-                    <td>
-                        <button class="btn btn-danger btn-sm" onclick="removeCartItem(${index})">Hapus</button>
-                    </td>
-                </tr>
-            `;
+            document.getElementById('totalPayment').textContent = `Rp ${total}`;
+        }
+
+        // Selesaikan transaksi
+        document.getElementById('completeTransactionButton').addEventListener('click', function () {
+            Swal.fire({
+                title: 'Konfirmasi Transaksi',
+                text: `Total Pembayaran: Rp ${document.getElementById('totalPayment').textContent}`,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Ya, Selesaikan!',
+                cancelButtonText: 'Batal'
+            }).then(result => {
+                if (result.isConfirmed) {
+                    const transactionId = generateTransactionId();
+                    const paymentMethod = document.querySelector('input[name="paymentMethod"]:checked').value;
+                    const transactionData = {
+                        transactionId,
+                        totalPayment: document.getElementById('totalPayment').textContent,
+                        paymentMethod,
+                        status: 'Selesai'
+                    };
+
+                    // Menyimpan transaksi
+                    let history = JSON.parse(localStorage.getItem('transactionHistory')) || [];
+                    history.push(transactionData);
+                    localStorage.setItem('transactionHistory', JSON.stringify(history));
+
+                    Swal.fire('Transaksi Selesai', `Transaksi ID: ${transactionId}`, 'success');
+
+                    // Reset form dan keranjang
+                    document.getElementById('posForm').reset();
+                    cart = [];
+                    loadCart();
+                    updateTotalPayment();
+                }
+            });
         });
 
-        totalPayment.textContent = `Rp ${totalCost.toLocaleString()}`;
-    }
-
-    // Hapus item dari keranjang
-    window.removeCartItem = (index) => {
-        cart.splice(index, 1);
-        updateCart();
-    };
-
-    // Selesaikan transaksi
-    completeTransactionButton.addEventListener("click", () => {
-        const selectedPaymentMethod = Array.from(paymentMethodRadios).find(r => r.checked).value;
-        const totalCost = parseFloat(totalPayment.textContent.replace("Rp ", "").replace(",", ""));
-
-        if (selectedPaymentMethod === "cash") {
-            transactionHistory.push({ id: generateTransactionId(), total: totalCost, status: "Lunas" });
-            Swal.fire("Berhasil", "Transaksi selesai dan lunas!", "success");
-        } else {
-            transactionHistory.push({ id: generateTransactionId(), total: totalCost, status: "Belum Lunas" });
-            Swal.fire("Berhasil", "Transaksi selesai. Silakan konfirmasi pembayaran!", "success");
-        }
-
-        localStorage.setItem("transactionHistory", JSON.stringify(transactionHistory));
-        cart = [];
-        updateCart();
-        loadHistory();
-    });
-
-    // Load riwayat transaksi
-    function loadHistory() {
-        historyTableBody.innerHTML = "";
-        transactionHistory.forEach((trx, index) => {
-            historyTableBody.innerHTML += `
-                <tr>
-                    <td>${index + 1}</td>
-                    <td>${trx.id}</td>
-                    <td>Rp ${trx.total.toLocaleString()}</td>
-                    <td>${trx.status}</td>
-                    <td>
-                        <button class="btn btn-primary btn-sm">Detail</button>
-                    </td>
-                </tr>
-            `;
-        });
-    }
-
-    // Inisialisasi halaman
-    function init() {
-        transactionId.value = generateTransactionId();
+        // Muat data awal
         loadProducts();
-        loadHistory();
-    }
-
-    init();
-});
-
+        loadCart();
     </script>
 </body>
 </html>
