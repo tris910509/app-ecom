@@ -107,6 +107,25 @@
             <div class="mt-4">
                 <button class="btn btn-success" onclick="processPayment()">Proses Pembayaran</button>
             </div>
+
+            <hr>
+
+            <!-- Riwayat Transaksi -->
+            <h4 class="mt-4">Riwayat Transaksi</h4>
+            <table class="table table-striped" id="transactionHistoryTable">
+                <thead class="table-primary">
+                    <tr>
+                        <th>ID Transaksi</th>
+                        <th>Pelanggan</th>
+                        <th>Total Pembayaran</th>
+                        <th>Metode Pembayaran</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Riwayat transaksi akan muncul di sini -->
+                </tbody>
+            </table>
         </div>
     </div>
 
@@ -114,6 +133,7 @@
         // Data Produk, Pelanggan, dan Transaksi yang disimpan di localStorage (untuk demo)
         const products = JSON.parse(localStorage.getItem("products")) || [];
         const customers = JSON.parse(localStorage.getItem("customers")) || [];
+        const transactions = JSON.parse(localStorage.getItem("transactions")) || [];
         let cart = [];
 
         // Memuat daftar produk ke dalam dropdown
@@ -189,10 +209,20 @@
             updateCart();
         }
 
-        // Memproses pembayaran
+        // Memproses pembayaran dan menyimpan transaksi
         function processPayment() {
             const totalAmount = parseFloat(document.getElementById('totalAmount').innerText);
             const paymentMethod = document.getElementById('paymentMethod').value;
+            const customerRole = document.getElementById('customerRole').value;
+            let customerName = "";
+
+            if (customerRole === 'umum') {
+                customerName = document.getElementById('customerName').value;
+            } else {
+                const customerId = document.getElementById('connectedCustomer').value;
+                const customer = customers.find(c => c.id === customerId);
+                customerName = customer ? customer.name : "Unknown";
+            }
 
             if (totalAmount > 0) {
                 Swal.fire({
@@ -204,12 +234,25 @@
                     cancelButtonText: 'Batal'
                 }).then((result) => {
                     if (result.isConfirmed) {
-                        // Simpan status transaksi
+                        // Simpan transaksi
+                        const transaction = {
+                            id: new Date().getTime(),
+                            customerName,
+                            totalAmount,
+                            paymentMethod,
+                            status: 'Lunas'
+                        };
+                        transactions.push(transaction);
+                        localStorage.setItem('transactions', JSON.stringify(transactions));
+
                         Swal.fire('Pembayaran Berhasil!', '', 'success');
                         document.getElementById('transactionStatus').innerText = 'Lunas';
                         // Reset keranjang
                         cart = [];
                         updateCart();
+
+                        // Muat ulang riwayat transaksi
+                        loadTransactionHistory();
                     }
                 });
             } else {
@@ -217,21 +260,26 @@
             }
         }
 
-        // Menangani perubahan peran pelanggan
-        document.getElementById('customerRole').addEventListener('change', (event) => {
-            const role = event.target.value;
-            if (role === 'umum') {
-                document.getElementById('customerForm').style.display = 'block';
-                document.getElementById('connectedCustomerForm').style.display = 'none';
-            } else {
-                document.getElementById('customerForm').style.display = 'none';
-                document.getElementById('connectedCustomerForm').style.display = 'block';
-                loadCustomers();
-            }
-        });
+        // Memuat riwayat transaksi dari localStorage
+        function loadTransactionHistory() {
+            const transactionHistoryTable = document.getElementById('transactionHistoryTable').getElementsByTagName('tbody')[0];
+            transactionHistoryTable.innerHTML = ''; // Kosongkan tabel riwayat transaksi
 
-        // Muat produk saat halaman dimuat
+            transactions.forEach(transaction => {
+                const row = transactionHistoryTable.insertRow();
+                row.innerHTML = `
+                    <td>${transaction.id}</td>
+                    <td>${transaction.customerName}</td>
+                    <td>${transaction.totalAmount}</td>
+                    <td>${transaction.paymentMethod}</td>
+                    <td>${transaction.status}</td>
+                `;
+            });
+        }
+
+        // Muat produk dan riwayat transaksi saat halaman dimuat
         loadProducts();
+        loadTransactionHistory();
     </script>
 </body>
 </html>
