@@ -15,7 +15,7 @@
         <!-- Formulir Transaksi POS -->
         <div class="mt-4">
             <h4>Formulir Transaksi</h4>
-            <form id="posForm">
+            <form id="posForm" onsubmit="return validateForm()">
                 <!-- Pilihan Role Pelanggan -->
                 <div class="mb-3">
                     <label for="customerRole" class="form-label">Pilih Peran Pelanggan</label>
@@ -141,88 +141,94 @@
     </div>
 
     <script>
-        // Data Produk, Pelanggan, dan Transaksi yang disimpan di localStorage (untuk demo)
-        const products = JSON.parse(localStorage.getItem("products")) || [];
-        const customers = JSON.parse(localStorage.getItem("customers")) || [];
-        const transactions = JSON.parse(localStorage.getItem("transactions")) || [];
-        let cart = [];
+        // Validasi Formulir Transaksi
+        function validateForm() {
+            const role = document.getElementById('customerRole').value;
+            const productSelect = document.getElementById('productSelect').value;
+            const quantity = document.getElementById('quantity').value;
+            const discount = document.getElementById('discount').value;
+            const paymentMethod = document.getElementById('paymentMethod').value;
 
-        // Memuat daftar produk ke dalam dropdown
-        function loadProducts() {
-            const productSelect = document.getElementById('productSelect');
-            products.forEach(product => {
-                const option = document.createElement('option');
-                option.value = product.id;
-                option.innerText = product.name;
-                productSelect.appendChild(option);
-            });
+            // Validasi Produk
+            if (!productSelect) {
+                alert("Silakan pilih produk.");
+                return false;
+            }
+
+            // Validasi Jumlah
+            if (quantity < 1) {
+                alert("Jumlah produk harus lebih dari 0.");
+                return false;
+            }
+
+            // Validasi Diskon
+            if (discount < 0 || discount > 100) {
+                alert("Diskon harus antara 0% dan 100%.");
+                return false;
+            }
+
+            // Validasi Metode Pembayaran
+            if (!paymentMethod) {
+                alert("Silakan pilih metode pembayaran.");
+                return false;
+            }
+
+            // Jika memilih metode pembayaran transfer atau ewallet, harus mengupload bukti pembayaran
+            if ((paymentMethod === "bank_transfer" || paymentMethod === "ewallet") && !document.getElementById('paymentProof').files.length) {
+                alert("Harap unggah bukti pembayaran.");
+                return false;
+            }
+
+            return true;
         }
 
-        // Memuat daftar pelanggan yang terhubung ke dalam dropdown berdasarkan peran
-        function loadCustomers(role) {
-            const customerSelect = document.getElementById('connectedCustomer');
-            customerSelect.innerHTML = ''; // Kosongkan opsi sebelumnya
-            const filteredCustomers = customers.filter(customer => customer.role === role);
-            filteredCustomers.forEach(customer => {
-                const option = document.createElement('option');
-                option.value = customer.id;
-                option.innerText = customer.name;
-                customerSelect.appendChild(option);
-            });
-        }
-
-        // Menambah produk ke keranjang
+        // Fungsi untuk menambahkan produk ke keranjang
         function addToCart() {
             const productId = document.getElementById('productSelect').value;
             const quantity = document.getElementById('quantity').value;
             const discount = document.getElementById('discount').value;
-            const product = products.find(p => p.id === productId);
 
-            if (product) {
-                const existingItem = cart.find(item => item.product.id === productId);
-                if (existingItem) {
-                    existingItem.quantity += parseInt(quantity);
-                    existingItem.discount = discount;
-                } else {
-                    cart.push({ product, quantity: parseInt(quantity), discount: discount });
-                }
-
-                updateCart();
+            if (!productId) {
+                alert("Produk belum dipilih.");
+                return;
             }
+
+            // Mendapatkan informasi produk dari daftar produk (ini perlu diintegrasikan dengan data produk aktual)
+            const product = { id: productId, name: `Produk ${productId}`, price: 10000 };  // Data produk dummy
+
+            // Menambahkan item ke keranjang
+            cart.push({ product, quantity, discount });
+            updateCart();
         }
 
-        // Mengupdate tampilan keranjang
+        // Fungsi untuk memperbarui tampilan keranjang
         function updateCart() {
             const cartTable = document.getElementById('cartTable').getElementsByTagName('tbody')[0];
-            cartTable.innerHTML = ''; // Kosongkan keranjang
-
+            cartTable.innerHTML = '';
             let totalAmount = 0;
             cart.forEach(item => {
-                const discountAmount = (item.product.price * item.discount) / 100;
-                const totalPrice = (item.product.price - discountAmount) * item.quantity;
-                totalAmount += totalPrice;
-
                 const row = cartTable.insertRow();
+                const total = item.product.price * item.quantity * (1 - item.discount / 100);
                 row.innerHTML = `
                     <td>${item.product.name}</td>
-                    <td>${item.product.price}</td>
+                    <td>${item.product.price} IDR</td>
                     <td>${item.quantity}</td>
                     <td>${item.discount}%</td>
-                    <td>${totalPrice}</td>
+                    <td>${total.toFixed(2)} IDR</td>
                     <td><button class="btn btn-danger btn-sm" onclick="removeFromCart('${item.product.id}')">Hapus</button></td>
                 `;
+                totalAmount += total;
             });
-
-            document.getElementById('totalAmount').innerText = totalAmount;
+            document.getElementById('totalAmount').innerText = totalAmount.toFixed(2);
         }
 
-        // Menghapus item dari keranjang
+        // Fungsi untuk menghapus item dari keranjang
         function removeFromCart(productId) {
             cart = cart.filter(item => item.product.id !== productId);
             updateCart();
         }
 
-        // Menangani perubahan metode pembayaran
+        // Fungsi untuk menangani perubahan metode pembayaran
         function handlePaymentMethodChange() {
             const paymentMethod = document.getElementById('paymentMethod').value;
             if (paymentMethod === 'bank_transfer' || paymentMethod === 'ewallet') {
@@ -232,7 +238,9 @@
             }
         }
 
-        // Proses pembayaran dan simpan transaksi
+        // Menyimpan dan menampilkan riwayat transaksi
+        let transactions = JSON.parse(localStorage.getItem('transactions')) || [];
+
         function processPayment() {
             const paymentMethod = document.getElementById('paymentMethod').value;
             const paymentProof = document.getElementById('paymentProof').files[0];
@@ -247,9 +255,9 @@
                 }
             }
 
-            // Simpan transaksi dengan UUID
+            // Menyimpan transaksi dengan UUID
             const transaction = {
-                id: uuid.v4(), // Menggunakan UUID untuk ID unik
+                id: uuid.v4(), // ID unik transaksi menggunakan UUID
                 customerName: document.getElementById('customerName').value,
                 totalAmount: document.getElementById('totalAmount').innerText,
                 paymentMethod,
