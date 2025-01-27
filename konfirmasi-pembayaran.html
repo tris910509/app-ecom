@@ -4,157 +4,88 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Konfirmasi Pembayaran</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
-    <div class="container mt-4">
-        <h2>Konfirmasi Pembayaran</h2>
 
-        <!-- Filter dan Pencarian -->
-        <div class="d-flex justify-content-between mt-4">
-            <div>
-                <select id="statusFilter" class="form-select" onchange="filterPayments()">
-                    <option value="all">Semua Status</option>
-                    <option value="lunas">Lunas</option>
-                    <option value="menunggu">Menunggu Pembayaran</option>
-                </select>
-            </div>
-            <div>
-                <input type="text" id="searchInput" class="form-control" placeholder="Cari ID transaksi atau nama pelanggan..." oninput="filterPayments()">
-            </div>
-        </div>
-
-        <!-- Tabel Daftar Pembayaran -->
-        <div class="mt-4">
-            <table class="table table-bordered">
-                <thead class="table-primary">
-                    <tr>
-                        <th>ID Transaksi</th>
-                        <th>Nama Pelanggan</th>
-                        <th>Total (Diskon)</th>
-                        <th>Metode Pembayaran</th>
-                        <th>Status</th>
-                        <th>Aksi</th>
-                    </tr>
-                </thead>
-                <tbody id="paymentTableBody">
-                    <!-- Data pembayaran akan dimuat di sini -->
-                </tbody>
-            </table>
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="#">Sistem POS</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="index.html">Dashboard</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="riwayat-transaksi.html">Riwayat Transaksi</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link active" href="#">Konfirmasi Pembayaran</a>
+                </li>
+            </ul>
         </div>
     </div>
+</nav>
 
-    <script>
-        let payments = JSON.parse(localStorage.getItem("transactions")) || [];
-        let customers = JSON.parse(localStorage.getItem("customers")) || [];
+<!-- Konfirmasi Pembayaran -->
+<div class="container mt-5">
+    <h4>Konfirmasi Pembayaran</h4>
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>ID Transaksi</th>
+                <th>Nama Pelanggan</th>
+                <th>Produk</th>
+                <th>Kategori</th>
+                <th>Total Pembayaran</th>
+                <th>Status</th>
+                <th>Aksi</th>
+            </tr>
+        </thead>
+        <tbody id="confirmationTable">
+            <!-- Data transaksi akan dimasukkan di sini -->
+        </tbody>
+    </table>
+</div>
 
-        // Mendapatkan diskon pelanggan
-        function getCustomerDiscount(customerId) {
-            const customer = customers.find(cust => cust.id === customerId);
-            return customer ? customer.discount : 0;
+<script>
+    // Dummy Data Transaksi
+    const transactions = [
+        
+    ];
+
+    // Menampilkan Data Transaksi di Tabel
+    const confirmationTable = document.getElementById("confirmationTable");
+    transactions.forEach(transaction => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+            <td>${transaction.id}</td>
+            <td>${transaction.customer}</td>
+            <td>${transaction.product}</td>
+            <td>${transaction.category}</td>
+            <td>Rp ${transaction.total}</td>
+            <td><span class="badge bg-warning">${transaction.status}</span></td>
+            <td>
+                <button class="btn btn-success btn-sm" onclick="confirmPayment('${transaction.id}')">Konfirmasi</button>
+            </td>
+        `;
+        confirmationTable.appendChild(row);
+    });
+
+    // Fungsi Konfirmasi Pembayaran
+    function confirmPayment(id) {
+        const transaction = transactions.find(trx => trx.id === id);
+        if (transaction) {
+            transaction.status = "Paid";
+            alert(`Pembayaran untuk ID Transaksi ${id} berhasil dikonfirmasi.`);
+            location.reload(); // Reload halaman untuk memperbarui status
         }
+    }
+</script>
 
-        // Menampilkan daftar pembayaran ke tabel
-        function loadPayments() {
-            const paymentTableBody = document.getElementById("paymentTableBody");
-            paymentTableBody.innerHTML = "";
-
-            payments.forEach((payment, index) => {
-                const discount = getCustomerDiscount(payment.customerId);
-                const discountedTotal = payment.total - (payment.total * discount / 100);
-
-                const row = document.createElement("tr");
-                row.innerHTML = `
-                    <td>${payment.id}</td>
-                    <td>${payment.customerName || "N/A"}</td>
-                    <td>${discountedTotal.toFixed(2)} IDR (${discount}% diskon)</td>
-                    <td>${payment.paymentMethod}</td>
-                    <td>
-                        <span class="badge ${payment.transactionStatus === "lunas" ? "bg-success" : "bg-warning"}">
-                            ${payment.transactionStatus === "lunas" ? "Lunas" : "Menunggu Pembayaran"}
-                        </span>
-                    </td>
-                    <td>
-                        <button class="btn btn-sm ${payment.transactionStatus === 'lunas' ? 'btn-success' : 'btn-warning'}" 
-                            onclick="handlePayment(${index})">
-                            ${payment.transactionStatus === 'lunas' ? 'Lunas' : 'Konfirmasi Pembayaran'}
-                        </button>
-                    </td>
-                `;
-                paymentTableBody.appendChild(row);
-            });
-        }
-
-        // Filter pembayaran berdasarkan status dan pencarian
-        function filterPayments() {
-            const statusFilter = document.getElementById("statusFilter").value;
-            const query = document.getElementById("searchInput").value.toLowerCase();
-
-            const filteredPayments = payments.filter(payment => {
-                const matchesStatus =
-                    statusFilter === "all" ||
-                    payment.transactionStatus === statusFilter;
-                const matchesQuery =
-                    payment.id.toLowerCase().includes(query) ||
-                    (payment.customerName && payment.customerName.toLowerCase().includes(query));
-                return matchesStatus && matchesQuery;
-            });
-
-            const paymentTableBody = document.getElementById("paymentTableBody");
-            paymentTableBody.innerHTML = "";
-
-            filteredPayments.forEach((payment, index) => {
-                const discount = getCustomerDiscount(payment.customerId);
-                const discountedTotal = payment.total - (payment.total * discount / 100);
-
-                const row = document.createElement("tr");
-                row.innerHTML = `
-                    <td>${payment.id}</td>
-                    <td>${payment.customerName || "N/A"}</td>
-                    <td>${discountedTotal.toFixed(2)} IDR (${discount}% diskon)</td>
-                    <td>${payment.paymentMethod}</td>
-                    <td>
-                        <span class="badge ${payment.transactionStatus === "lunas" ? "bg-success" : "bg-warning"}">
-                            ${payment.transactionStatus === "lunas" ? "Lunas" : "Menunggu Pembayaran"}
-                        </span>
-                    </td>
-                    <td>
-                        <button class="btn btn-sm ${payment.transactionStatus === 'lunas' ? 'btn-success' : 'btn-warning'}" 
-                            onclick="handlePayment(${index})">
-                            ${payment.transactionStatus === 'lunas' ? 'Lunas' : 'Konfirmasi Pembayaran'}
-                        </button>
-                    </td>
-                `;
-                paymentTableBody.appendChild(row);
-            });
-        }
-
-        // Menangani konfirmasi pembayaran
-        function handlePayment(index) {
-            const payment = payments[index];
-            if (payment.transactionStatus === "menunggu") {
-                Swal.fire({
-                    title: "Konfirmasi Pembayaran",
-                    text: "Apakah Anda yakin ingin mengkonfirmasi pembayaran ini?",
-                    icon: "warning",
-                    showCancelButton: true,
-                    confirmButtonText: "Ya, Konfirmasi",
-                    cancelButtonText: "Batal"
-                }).then(result => {
-                    if (result.isConfirmed) {
-                        payments[index].transactionStatus = "lunas";
-                        localStorage.setItem("transactions", JSON.stringify(payments));
-                        Swal.fire("Sukses", "Pembayaran telah dikonfirmasi!", "success").then(() => loadPayments());
-                    }
-                });
-            }
-        }
-
-        // Inisialisasi
-        document.addEventListener("DOMContentLoaded", () => {
-            loadPayments();
-        });
-    </script>
 </body>
 </html>
