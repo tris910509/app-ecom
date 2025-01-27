@@ -157,10 +157,12 @@
             });
         }
 
-        // Memuat daftar pelanggan yang terhubung ke dalam dropdown
-        function loadCustomers() {
+        // Memuat daftar pelanggan yang terhubung ke dalam dropdown berdasarkan peran
+        function loadCustomers(role) {
             const customerSelect = document.getElementById('connectedCustomer');
-            customers.forEach(customer => {
+            customerSelect.innerHTML = ''; // Kosongkan opsi sebelumnya
+            const filteredCustomers = customers.filter(customer => customer.role === role);
+            filteredCustomers.forEach(customer => {
                 const option = document.createElement('option');
                 option.value = customer.id;
                 option.innerText = customer.name;
@@ -221,32 +223,28 @@
 
         // Memproses pembayaran dan menyimpan transaksi
         function processPayment() {
-            const totalAmount = parseFloat(document.getElementById('totalAmount').innerText);
             const paymentMethod = document.getElementById('paymentMethod').value;
-            const customerRole = document.getElementById('customerRole').value;
-            let customerName = "";
+            const paymentProof = document.getElementById('paymentProof').files[0];
 
-            if (customerRole === "umum") {
-                customerName = document.getElementById('customerName').value;
-            } else {
-                const selectedCustomer = customers.find(customer => customer.id === document.getElementById('connectedCustomer').value);
-                customerName = selectedCustomer ? selectedCustomer.name : "";
-            }
-
-            let transactionStatus = "Belum Lunas";
-
-            if (paymentMethod === "cash" && totalAmount === totalAmount) {
-                transactionStatus = "Lunas";
+            let status = 'Belum Lunas';
+            let proofUrl = null;
+            if (paymentMethod === 'cash') {
+                status = 'Lunas';
+            } else if (paymentMethod === 'bank_transfer' || paymentMethod === 'ewallet') {
+                if (paymentProof) {
+                    // Upload file bukti pembayaran (misal menggunakan FileReader atau server)
+                    proofUrl = URL.createObjectURL(paymentProof);
+                }
             }
 
             // Menyimpan transaksi
             const transaction = {
-                id: new Date().getTime(), // ID Transaksi Unik
-                customerName,
-                totalAmount,
+                id: `T-${Date.now()}`,
+                customerName: document.getElementById('customerName').value,
+                totalAmount: document.getElementById('totalAmount').innerText,
                 paymentMethod,
-                status: transactionStatus,
-                paymentProof: (paymentMethod === "bank_transfer" || paymentMethod === "ewallet") ? null : ""
+                status,
+                paymentProof: proofUrl,
             };
 
             transactions.push(transaction);
@@ -254,9 +252,6 @@
 
             // Update riwayat transaksi
             updateTransactionHistory();
-
-            // Menampilkan status pembayaran
-            document.getElementById('transactionStatus').innerText = transactionStatus;
         }
 
         // Menampilkan riwayat transaksi
@@ -286,12 +281,12 @@
             } else {
                 document.getElementById('customerForm').style.display = "none";
                 document.getElementById('connectedCustomerForm').style.display = "block";
+                loadCustomers(customerRole); // Memuat pelanggan berdasarkan peran yang dipilih
             }
         }
 
         // Memuat data awal
         loadProducts();
-        loadCustomers();
         updateTransactionHistory();
     </script>
 </body>
