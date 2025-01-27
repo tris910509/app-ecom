@@ -193,8 +193,8 @@
                 return;
             }
 
-            // Mendapatkan informasi produk dari daftar produk (ini perlu diintegrasikan dengan data produk aktual)
-            const product = { id: productId, name: `Produk ${productId}`, price: 10000 };  // Data produk dummy
+            // Data produk dummy
+            const product = { id: productId, name: `Produk ${productId}`, price: 10000 };
 
             // Menambahkan item ke keranjang
             cart.push({ product, quantity, discount });
@@ -228,7 +228,7 @@
             updateCart();
         }
 
-        // Fungsi untuk menangani perubahan metode pembayaran
+        // Menangani perubahan metode pembayaran
         function handlePaymentMethodChange() {
             const paymentMethod = document.getElementById('paymentMethod').value;
             if (paymentMethod === 'bank_transfer' || paymentMethod === 'ewallet') {
@@ -238,7 +238,7 @@
             }
         }
 
-        // Menyimpan dan menampilkan riwayat transaksi
+        // Simpan dan tampilkan riwayat transaksi
         let transactions = JSON.parse(localStorage.getItem('transactions')) || [];
 
         function processPayment() {
@@ -257,7 +257,7 @@
 
             // Menyimpan transaksi dengan UUID
             const transaction = {
-                id: uuid.v4(), // ID unik transaksi menggunakan UUID
+                id: uuid.v4(),
                 customerName: document.getElementById('customerName').value,
                 totalAmount: document.getElementById('totalAmount').innerText,
                 paymentMethod,
