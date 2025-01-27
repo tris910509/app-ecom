@@ -6,6 +6,7 @@
     <title>Halaman POS (Point of Sale)</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/uuid@8.3.2/dist/uuid.min.js"></script> <!-- Tambahkan UUID -->
 </head>
 <body>
     <div class="container mt-4">
@@ -129,7 +130,7 @@
                         <th>Total Pembayaran</th>
                         <th>Metode Pembayaran</th>
                         <th>Status</th>
-                        <th>Bukti Pembayaran</th>
+                        <th>Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -246,9 +247,9 @@
                 }
             }
 
-            // Simpan transaksi
+            // Simpan transaksi dengan UUID
             const transaction = {
-                id: `T-${Date.now()}`,
+                id: uuid.v4(), // Menggunakan UUID untuk ID unik
                 customerName: document.getElementById('customerName').value,
                 totalAmount: document.getElementById('totalAmount').innerText,
                 paymentMethod,
@@ -276,9 +277,45 @@
                     <td>${transaction.totalAmount}</td>
                     <td>${transaction.paymentMethod}</td>
                     <td>${transaction.status}</td>
-                    <td>${transaction.paymentProof ? `<a href="${transaction.paymentProof}" target="_blank">Lihat Bukti Pembayaran</a>` : '-'}</td>
+                    <td>
+                        <button class="btn btn-info btn-sm" onclick="viewTransactionDetails('${transaction.id}')">Detail</button>
+                        <button class="btn btn-danger btn-sm" onclick="deleteTransaction('${transaction.id}')">Hapus</button>
+                        ${transaction.status === 'Belum Lunas' ? `<button class="btn btn-success btn-sm" onclick="confirmPayment('${transaction.id}')">Konfirmasi Pembayaran</button>` : ''}
+                    </td>
                 `;
             });
+        }
+
+        // Melihat detail transaksi
+        function viewTransactionDetails(transactionId) {
+            const transaction = transactions.find(t => t.id === transactionId);
+            if (transaction) {
+                alert(`
+                    ID Transaksi: ${transaction.id}
+                    Pelanggan: ${transaction.customerName}
+                    Total: ${transaction.totalAmount}
+                    Metode Pembayaran: ${transaction.paymentMethod}
+                    Status: ${transaction.status}
+                    Bukti Pembayaran: ${transaction.paymentProof ? `Lihat Bukti Pembayaran` : 'Tidak Ada'}
+                `);
+            }
+        }
+
+        // Menghapus transaksi
+        function deleteTransaction(transactionId) {
+            transactions = transactions.filter(t => t.id !== transactionId);
+            localStorage.setItem('transactions', JSON.stringify(transactions));
+            updateTransactionHistory();
+        }
+
+        // Konfirmasi pembayaran
+        function confirmPayment(transactionId) {
+            const transaction = transactions.find(t => t.id === transactionId);
+            if (transaction) {
+                transaction.status = 'Lunas';
+                localStorage.setItem('transactions', JSON.stringify(transactions));
+                updateTransactionHistory();
+            }
         }
 
         // Memuat produk dan transaksi saat halaman pertama kali dimuat
