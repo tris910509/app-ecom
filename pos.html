@@ -227,44 +227,39 @@
             if (customerRole === "umum") {
                 customerName = document.getElementById('customerName').value;
             } else {
-                const selectedCustomer = document.getElementById('connectedCustomer').value;
-                const customer = customers.find(c => c.id === selectedCustomer);
-                customerName = customer ? customer.name : "";
+                const selectedCustomer = customers.find(customer => customer.id === document.getElementById('connectedCustomer').value);
+                customerName = selectedCustomer ? selectedCustomer.name : "";
             }
 
-            const status = (paymentMethod === "cash") ? "Lunas" : "Belum Lunas";
-            const paymentProof = (paymentMethod === "bank_transfer" || paymentMethod === "ewallet") ? uploadPaymentProof() : "Tidak Diperlukan";
+            let transactionStatus = "Belum Lunas";
+
+            if (paymentMethod === "cash") {
+                if (totalAmount <= totalAmount) {
+                    transactionStatus = "Lunas";
+                }
+            }
 
             const transaction = {
-                id: new Date().getTime(), // ID unik berdasarkan waktu
+                id: new Date().getTime(), // ID Transaksi Unik
                 customerName,
                 totalAmount,
                 paymentMethod,
-                status,
-                paymentProof
+                status: transactionStatus,
+                paymentProof: (paymentMethod === "bank_transfer" || paymentMethod === "ewallet") ? null : ""
             };
 
+            // Simpan transaksi di localStorage
             transactions.push(transaction);
-            localStorage.setItem("transactions", JSON.stringify(transactions));
+            localStorage.setItem('transactions', JSON.stringify(transactions));
 
-            Swal.fire('Pembayaran berhasil!', 'Transaksi telah diproses.', 'success');
+            // Update riwayat transaksi
             updateTransactionHistory();
+
+            // Menampilkan status pembayaran
+            document.getElementById('transactionStatus').innerText = transactionStatus;
         }
 
-        // Fungsi untuk upload bukti pembayaran
-        function uploadPaymentProof() {
-            const paymentProofFile = document.getElementById('paymentProof').files[0];
-            if (paymentProofFile) {
-                const reader = new FileReader();
-                reader.onload = function (e) {
-                    return e.target.result; // Mengembalikan hasil upload sebagai base64 string
-                };
-                reader.readAsDataURL(paymentProofFile);
-            }
-            return "Bukti Pembayaran Tidak Diupload";
-        }
-
-        // Memperbarui riwayat transaksi
+        // Menampilkan riwayat transaksi
         function updateTransactionHistory() {
             const transactionHistoryTable = document.getElementById('transactionHistoryTable').getElementsByTagName('tbody')[0];
             transactionHistoryTable.innerHTML = '';
@@ -281,26 +276,6 @@
                 `;
             });
         }
-
-        // Memuat data awal
-        loadProducts();
-        loadCustomers();
-        updateTransactionHistory();
-
-        // Menyembunyikan dan menampilkan formulir berdasarkan role pelanggan
-        document.getElementById('customerRole').addEventListener('change', function () {
-            const customerRole = this.value;
-            const customerForm = document.getElementById('customerForm');
-            const connectedCustomerForm = document.getElementById('connectedCustomerForm');
-
-            if (customerRole === 'umum') {
-                customerForm.style.display = 'block';
-                connectedCustomerForm.style.display = 'none';
-            } else {
-                customerForm.style.display = 'none';
-                connectedCustomerForm.style.display = 'block';
-            }
-        });
 
         // Memuat data awal
         loadProducts();
