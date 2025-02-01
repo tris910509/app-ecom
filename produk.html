@@ -13,202 +13,183 @@
         <h2 class="text-center">Manajemen Produk</h2>
 
         <!-- Form Tambah Produk -->
-        <div class="card mt-3 p-3">
+        <div class="card p-3 mt-3">
             <h4>Tambah Produk</h4>
-            <input type="hidden" id="productId">
-            <input type="text" id="productName" class="form-control mb-2" placeholder="Nama Produk">
-            <select id="productCategory" class="form-select mb-2">
-                <option value="">Pilih Kategori</option>
-            </select>
-            <input type="number" id="productPrice" class="form-control mb-2" placeholder="Harga">
-            <input type="number" id="productStock" class="form-control mb-2" placeholder="Stok">
-            <input type="number" id="productDiscount" class="form-control mb-2" placeholder="Diskon (%)" value="0">
-            <input type="file" id="productImage" class="form-control mb-2">
-            <select id="productStatus" class="form-select mb-2">
-                <option value="aktif">Aktif</option>
-                <option value="nonaktif">Nonaktif</option>
-            </select>
-            <button class="btn btn-primary" onclick="saveProduct()">Simpan Produk</button>
+            <div class="mb-2">
+                <label class="form-label">Nama Produk</label>
+                <input type="text" id="productName" class="form-control" placeholder="Masukkan nama produk">
+            </div>
+
+            <div class="mb-2">
+                <label class="form-label">Kategori</label>
+                <select id="productCategory" class="form-select"></select>
+            </div>
+
+            <div class="mb-2">
+                <label class="form-label">Harga (IDR)</label>
+                <input type="number" id="productPrice" class="form-control" placeholder="Masukkan harga produk">
+            </div>
+
+            <div class="mb-2">
+                <label class="form-label">Status</label>
+                <select id="productStatus" class="form-select">
+                    <option value="aktif">Aktif</option>
+                    <option value="nonaktif">Non-Aktif</option>
+                </select>
+            </div>
+
+            <div class="mb-2">
+                <label class="form-label">Foto Produk</label>
+                <input type="file" id="productImage" class="form-control" accept="image/*" onchange="previewImage(event)">
+                <img id="preview" src="" alt="Preview Gambar" width="100" style="margin-top:10px; display:none;">
+            </div>
+
+            <button class="btn btn-primary mt-3" onclick="addProduct()">Tambah Produk</button>
         </div>
 
-        <!-- Tabel Produk -->
-        <h4 class="mt-4">Daftar Produk</h4>
-        <table class="table table-bordered">
+        <hr>
+
+        <!-- Daftar Produk -->
+        <h4>Daftar Produk</h4>
+        <table class="table table-striped">
             <thead class="table-dark">
-    <tr>
-        <th>No</th>
-        <th>ID Produk</th> <!-- Tambahkan kolom ID Produk -->
-        <th>Nama Produk</th>
-        <th>Kategori</th>
-        <th>Harga</th>
-        <th>Gambar</th>
-        <th>Status</th>
-        <th>Aksi</th>
-    </tr>
-</thead>
-<tbody id="productTable"></tbody>
+                <tr>
+                    <th>No</th>
+                    <th>ID Produk</th>
+                    <th>Nama Produk</th>
+                    <th>Kategori</th>
+                    <th>Harga</th>
+                    <th>Gambar</th>
+                    <th>Status</th>
+                    <th>Aksi</th>
+                </tr>
+            </thead>
+            <tbody id="productTable"></tbody>
         </table>
     </div>
 
     <script>
         let products = JSON.parse(localStorage.getItem("products")) || [];
-        let categories = JSON.parse(localStorage.getItem("categories")) || [];
 
-        function loadCategories() {
-            let categorySelect = document.getElementById("productCategory");
-            categorySelect.innerHTML = '<option value="">Pilih Kategori</option>';
-            categories.forEach(cat => {
-                let option = document.createElement("option");
-                option.value = cat.id;
-                option.textContent = cat.name;
-                categorySelect.appendChild(option);
+        // Load kategori dari localStorage (simulasi koneksi dengan halaman kategori)
+        let categories = JSON.parse(localStorage.getItem("categories")) || [];
+        let categorySelect = document.getElementById("productCategory");
+        categorySelect.innerHTML = categories.map(cat => `<option value="${cat}">${cat}</option>`).join("");
+
+        // Fungsi Menampilkan Produk
+        function displayProducts() {
+            let tbody = document.getElementById("productTable");
+            tbody.innerHTML = "";
+            products.forEach((product, index) => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${index + 1}</td>
+                        <td>${product.id}</td>
+                        <td>${product.name}</td>
+                        <td>${product.category}</td>
+                        <td>IDR ${product.price.toLocaleString()}</td>
+                        <td><img src="${product.image}" width="50" height="50" alt="Gambar Produk"></td>
+                        <td>
+                            <span class="badge bg-${product.status === 'aktif' ? 'success' : 'danger'}">
+                                ${product.status}
+                            </span>
+                        </td>
+                        <td>
+                            <button class="btn btn-warning btn-sm" onclick="editProduct('${product.id}')">Edit</button>
+                            <button class="btn btn-danger btn-sm" onclick="deleteProduct('${product.id}')">Hapus</button>
+                        </td>
+                    </tr>
+                `;
             });
         }
 
-        function saveProduct() {
-            let id = document.getElementById("productId").value || uuid.v4();
-            let name = document.getElementById("productName").value;
+        // Fungsi Menambah Produk
+        function addProduct() {
+            let name = document.getElementById("productName").value.trim();
             let category = document.getElementById("productCategory").value;
-            let price = document.getElementById("productPrice").value;
-            let stock = document.getElementById("productStock").value;
-            let discount = document.getElementById("productDiscount").value;
+            let price = parseFloat(document.getElementById("productPrice").value);
             let status = document.getElementById("productStatus").value;
-            let imageFile = document.getElementById("productImage").files[0];
+            let imageInput = document.getElementById("productImage");
 
-            if (!name || !category || !price || !stock) {
-                Swal.fire("Error", "Mohon lengkapi semua data!", "error");
+            if (!name || isNaN(price) || price <= 0 || !imageInput.files.length) {
+                Swal.fire("Error", "Lengkapi semua data produk!", "error");
                 return;
             }
 
-            let imageUrl = "";
-            if (imageFile) {
-                let reader = new FileReader();
-                reader.onload = function(e) {
-                    imageUrl = e.target.result;
-                    saveToLocalStorage(id, name, category, price, stock, discount, imageUrl, status);
+            let reader = new FileReader();
+            reader.onload = function (event) {
+                let newProduct = {
+                    id: uuid.v4(),
+                    name,
+                    category,
+                    price,
+                    status,
+                    image: event.target.result
                 };
-                reader.readAsDataURL(imageFile);
-            } else {
-                saveToLocalStorage(id, name, category, price, stock, discount, imageUrl, status);
-            }
+
+                products.push(newProduct);
+                localStorage.setItem("products", JSON.stringify(products));
+                displayProducts();
+                Swal.fire("Sukses", "Produk berhasil ditambahkan!", "success");
+            };
+            reader.readAsDataURL(imageInput.files[0]);
         }
 
-        function saveToLocalStorage(id, name, category, price, stock, discount, imageUrl, status) {
-            let existingProduct = products.find(p => p.id === id);
-            if (existingProduct) {
-                existingProduct.name = name;
-                existingProduct.category = category;
-                existingProduct.price = price;
-                existingProduct.stock = stock;
-                existingProduct.discount = discount;
-                existingProduct.image = imageUrl;
-                existingProduct.status = status;
-            } else {
-                products.push({ id, name, category, price, stock, discount, image: imageUrl, status });
-            }
-
-            localStorage.setItem("products", JSON.stringify(products));
-            Swal.fire("Sukses", "Produk berhasil disimpan!", "success");
-            resetForm();
-            loadProducts();
-        }
-
-        function loadProducts() {
-            let tbody = document.getElementById("productTable");
-            tbody.innerHTML = products.map((p, i) => `
-                <tr>
-                    <td>${i + 1}</td>
-                    <td>${p.name}</td>
-                    <td>${categories.find(c => c.id === p.category)?.name || "Tidak Diketahui"}</td>
-                    <td>${p.price} IDR</td>
-                    <td>${p.stock}</td>
-                    <td>${p.discount}%</td>
-                    <td><img src="${p.image}" width="50"></td>
-                    <td>${p.status}</td>
-                    <td>
-                        <button class="btn btn-warning btn-sm" onclick="editProduct('${p.id}')">Edit</button>
-                        <button class="btn btn-danger btn-sm" onclick="deleteProduct('${p.id}')">Hapus</button>
-                    </td>
-                </tr>
-            `).join("");
-     }  
-
-
-
-        function displayProducts() {
-    let tbody = document.getElementById("productTable");
-    tbody.innerHTML = "";
-    products.forEach((product, index) => {
-        tbody.innerHTML += `
-            <tr>
-                <td>${index + 1}</td>
-                <td>${product.id}</td> <!-- Menampilkan UUID -->
-                <td>${product.name}</td>
-                <td>${product.category}</td>
-                <td>IDR ${product.price.toLocaleString()}</td>
-                <td><img src="${product.image}" width="50" height="50" alt="Gambar Produk"></td>
-                <td>
-                    <span class="badge bg-${product.status === 'aktif' ? 'success' : 'danger'}">
-                        ${product.status}
-                    </span>
-                </td>
-                <td>
-                    <button class="btn btn-warning btn-sm" onclick="editProduct('${product.id}')">Edit</button>
-                    <button class="btn btn-danger btn-sm" onclick="deleteProduct('${product.id}')">Hapus</button>
-                </td>
-            </tr>
-        `;
-    });
-}
-
-
-
-        
-
+        // Fungsi Mengedit Produk
         function editProduct(id) {
             let product = products.find(p => p.id === id);
             if (!product) return;
 
-            document.getElementById("productId").value = product.id;
-            document.getElementById("productName").value = product.name;
-            document.getElementById("productCategory").value = product.category;
-            document.getElementById("productPrice").value = product.price;
-            document.getElementById("productStock").value = product.stock;
-            document.getElementById("productDiscount").value = product.discount;
-            document.getElementById("productStatus").value = product.status;
-        }
-
-        function deleteProduct(id) {
             Swal.fire({
-                title: "Konfirmasi",
-                text: "Yakin ingin menghapus produk ini?",
-                icon: "warning",
+                title: "Edit Produk",
+                html: `
+                    <input type="text" id="editName" class="form-control mb-2" value="${product.name}">
+                    <select id="editCategory" class="form-select mb-2">
+                        ${categories.map(cat => `<option value="${cat}" ${cat === product.category ? "selected" : ""}>${cat}</option>`).join("")}
+                    </select>
+                    <input type="number" id="editPrice" class="form-control mb-2" value="${product.price}">
+                    <select id="editStatus" class="form-select">
+                        <option value="aktif" ${product.status === "aktif" ? "selected" : ""}>Aktif</option>
+                        <option value="nonaktif" ${product.status === "nonaktif" ? "selected" : ""}>Non-Aktif</option>
+                    </select>
+                `,
                 showCancelButton: true,
-                confirmButtonText: "Ya, hapus!",
-                cancelButtonText: "Batal"
-            }).then(result => {
+                confirmButtonText: "Simpan",
+            }).then((result) => {
                 if (result.isConfirmed) {
-                    products = products.filter(p => p.id !== id);
+                    product.name = document.getElementById("editName").value;
+                    product.category = document.getElementById("editCategory").value;
+                    product.price = parseFloat(document.getElementById("editPrice").value);
+                    product.status = document.getElementById("editStatus").value;
+
                     localStorage.setItem("products", JSON.stringify(products));
-                    Swal.fire("Terhapus", "Produk berhasil dihapus!", "success");
-                    loadProducts();
+                    displayProducts();
+                    Swal.fire("Sukses", "Produk berhasil diperbarui!", "success");
                 }
             });
         }
 
-        function resetForm() {
-            document.getElementById("productId").value = "";
-            document.getElementById("productName").value = "";
-            document.getElementById("productCategory").value = "";
-            document.getElementById("productPrice").value = "";
-            document.getElementById("productStock").value = "";
-            document.getElementById("productDiscount").value = "0";
-            document.getElementById("productImage").value = "";
-            document.getElementById("productStatus").value = "aktif";
+        // Fungsi Menghapus Produk
+        function deleteProduct(id) {
+            products = products.filter(p => p.id !== id);
+            localStorage.setItem("products", JSON.stringify(products));
+            displayProducts();
+            Swal.fire("Dihapus", "Produk telah dihapus!", "success");
         }
 
-        loadCategories();
-        loadProducts();
+        // Fungsi Preview Gambar
+        function previewImage(event) {
+            let reader = new FileReader();
+            reader.onload = function () {
+                let preview = document.getElementById("preview");
+                preview.src = reader.result;
+                preview.style.display = "block";
+            };
+            reader.readAsDataURL(event.target.files[0]);
+        }
+
+        // Load Produk saat Halaman Dibuka
+        displayProducts();
     </script>
 </body>
 </html>
