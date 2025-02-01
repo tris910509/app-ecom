@@ -56,6 +56,7 @@
         function displayCategories() {
             let tbody = document.getElementById("categoryTable");
             tbody.innerHTML = "";
+
             categories.forEach((category, index) => {
                 tbody.innerHTML += `
                     <tr>
@@ -88,6 +89,8 @@
                 return;
             }
 
+            categories = JSON.parse(localStorage.getItem("categories")) || [];
+
             // Cek duplikat kategori
             if (categories.some(cat => cat.name.toLowerCase() === name.toLowerCase())) {
                 Swal.fire("Error", "Kategori sudah ada!", "error");
@@ -102,11 +105,11 @@
 
             categories.push(newCategory);
             localStorage.setItem("categories", JSON.stringify(categories));
-            displayCategories();
+            displayCategories(); // ⬅ Pastikan kategori langsung muncul di tabel
+
             Swal.fire("Sukses", "Kategori berhasil ditambahkan!", "success");
 
-            // Reset input
-            document.getElementById("categoryName").value = "";
+            document.getElementById("categoryName").value = ""; // Reset input
         }
 
         // Fungsi Toggle Status Kategori
@@ -175,7 +178,9 @@
         }
 
         // Load Kategori saat Halaman Dibuka
-        displayCategories();
+        document.addEventListener("DOMContentLoaded", () => {
+            displayCategories();
+        });
     </script>
 </body>
 </html>
