@@ -1,26 +1,26 @@
-document.getElementById("userForm").addEventListener("submit", function (e) {
-    e.preventDefault();
+//document.getElementById("userForm").addEventListener("submit", function (e) {
+//    e.preventDefault();
 
-    const id = `user-${Date.now()}`;
-    const name = document.getElementById("name").value;
-    const email = document.getElementById("email").value;
-    const role = document.getElementById("role").value;
-    const status = document.getElementById("status").value;
-    const password = document.getElementById("password").value;
-    const hashedPassword = CryptoJS.SHA256(password).toString(); // Hash password
+//    const id = `user-${Date.now()}`;
+//    const name = document.getElementById("name").value;
+//    const email = document.getElementById("email").value;
+//    const role = document.getElementById("role").value;
+//    const status = document.getElementById("status").value;
+//    const password = document.getElementById("password").value;
+ //   const hashedPassword = CryptoJS.SHA256(password).toString(); // Hash password
 
-    const fileInput = document.getElementById("photo");
-    const photo = fileInput.files[0] ? URL.createObjectURL(fileInput.files[0]) : "";
+  //  const fileInput = document.getElementById("photo");
+   // const photo = fileInput.files[0] ? URL.createObjectURL(fileInput.files[0]) : "";
 
-  const users = JSON.parse(localStorage.getItem("users")) || [];
-  users.push({ id, name, email, role, status, password: hashedPassword, photo });
-    localStorage.setItem("users", JSON.stringify(users));
+//  const users = JSON.parse(localStorage.getItem("users")) || [];
+//  users.push({ id, name, email, role, status, password: hashedPassword, photo });
+//    localStorage.setItem("users", JSON.stringify(users));
 
-   Swal.fire("Success", "User added successfully!", "success").then(() => {
-    document.getElementById("userForm").reset();
-   loadUsers();
-    });
-});
+//   Swal.fire("Success", "User added successfully!", "success").then(() => {
+ //   document.getElementById("userForm").reset();
+//   loadUsers();
+//    });
+//  });
 
 //Buat fungsi untuk memeriksa akses di setiap halaman:
 //function checkAccess(requiredRole) {
