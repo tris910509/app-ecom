@@ -35,19 +35,18 @@
         <h4 class="mt-4">Daftar Produk</h4>
         <table class="table table-bordered">
             <thead class="table-dark">
-                <tr>
-                    <th>No</th>
-                    <th>Nama Produk</th>
-                    <th>Kategori</th>
-                    <th>Harga</th>
-                    <th>Stok</th>
-                    <th>Diskon</th>
-                    <th>Foto</th>
-                    <th>Status</th>
-                    <th>Aksi</th>
-                </tr>
-            </thead>
-            <tbody id="productTable"></tbody>
+    <tr>
+        <th>No</th>
+        <th>ID Produk</th> <!-- Tambahkan kolom ID Produk -->
+        <th>Nama Produk</th>
+        <th>Kategori</th>
+        <th>Harga</th>
+        <th>Gambar</th>
+        <th>Status</th>
+        <th>Aksi</th>
+    </tr>
+</thead>
+<tbody id="productTable"></tbody>
         </table>
     </div>
 
@@ -132,7 +131,39 @@
                     </td>
                 </tr>
             `).join("");
-        }
+     }  
+
+
+
+        function displayProducts() {
+    let tbody = document.getElementById("productTable");
+    tbody.innerHTML = "";
+    products.forEach((product, index) => {
+        tbody.innerHTML += `
+            <tr>
+                <td>${index + 1}</td>
+                <td>${product.id}</td> <!-- Menampilkan UUID -->
+                <td>${product.name}</td>
+                <td>${product.category}</td>
+                <td>IDR ${product.price.toLocaleString()}</td>
+                <td><img src="${product.image}" width="50" height="50" alt="Gambar Produk"></td>
+                <td>
+                    <span class="badge bg-${product.status === 'aktif' ? 'success' : 'danger'}">
+                        ${product.status}
+                    </span>
+                </td>
+                <td>
+                    <button class="btn btn-warning btn-sm" onclick="editProduct('${product.id}')">Edit</button>
+                    <button class="btn btn-danger btn-sm" onclick="deleteProduct('${product.id}')">Hapus</button>
+                </td>
+            </tr>
+        `;
+    });
+}
+
+
+
+        
 
         function editProduct(id) {
             let product = products.find(p => p.id === id);
