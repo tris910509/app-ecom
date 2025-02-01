@@ -23,17 +23,17 @@ document.getElementById("userForm").addEventListener("submit", function (e) {
 });
 
 //Buat fungsi untuk memeriksa akses di setiap halaman:
-function checkAccess(requiredRole) {
-    const currentUser = JSON.parse(localStorage.getItem("currentUser"));
+//function checkAccess(requiredRole) {
+ //   const currentUser = JSON.parse(localStorage.getItem("currentUser"));
 
     if (!currentUser) {
         Swal.fire("Access Denied", "Please log in first.", "error").then(() => {
-            window.location.href = "index.html";
+  //          window.location.href = "index.html";
         });
         return false;
     }
 
-    if (currentUser.role !== requiredRole && requiredRole !== "all") {
+ //   if (currentUser.role !== requiredRole && requiredRole !== "all") {
         Swal.fire("Access Denied", "You do not have permission to access this page.", "error").then(() => {
             window.location.href = "dashboard.html";
         });
