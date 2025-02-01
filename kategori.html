@@ -12,6 +12,9 @@
     <div class="container mt-4">
         <h2 class="text-center">Manajemen Kategori</h2>
 
+        <!-- Pencarian -->
+        <input type="text" id="searchCategory" class="form-control my-3" placeholder="Cari kategori..." onkeyup="searchCategory()">
+
         <!-- Form Tambah Kategori -->
         <div class="card p-3 mt-3">
             <h4>Tambah Kategori</h4>
@@ -47,20 +50,29 @@
             </thead>
             <tbody id="categoryTable"></tbody>
         </table>
+
+        <!-- Pagination -->
+        <nav>
+            <ul class="pagination" id="pagination"></ul>
+        </nav>
     </div>
 
     <script>
         let categories = JSON.parse(localStorage.getItem("categories")) || [];
+        let currentPage = 1;
+        let rowsPerPage = 5;
 
-        // Fungsi Menampilkan Kategori
         function displayCategories() {
             let tbody = document.getElementById("categoryTable");
             tbody.innerHTML = "";
+            let start = (currentPage - 1) * rowsPerPage;
+            let end = start + rowsPerPage;
+            let paginatedCategories = categories.slice(start, end);
 
-            categories.forEach((category, index) => {
+            paginatedCategories.forEach((category, index) => {
                 tbody.innerHTML += `
                     <tr>
-                        <td>${index + 1}</td>
+                        <td>${start + index + 1}</td>
                         <td>${category.id}</td>
                         <td>${category.name}</td>
                         <td>
@@ -77,9 +89,27 @@
                     </tr>
                 `;
             });
+
+            setupPagination();
         }
 
-        // Fungsi Menambah Kategori
+        function setupPagination() {
+            let pagination = document.getElementById("pagination");
+            pagination.innerHTML = "";
+            let pageCount = Math.ceil(categories.length / rowsPerPage);
+
+            for (let i = 1; i <= pageCount; i++) {
+                pagination.innerHTML += `<li class="page-item ${i === currentPage ? 'active' : ''}">
+                    <a class="page-link" href="#" onclick="changePage(${i})">${i}</a>
+                </li>`;
+            }
+        }
+
+        function changePage(page) {
+            currentPage = page;
+            displayCategories();
+        }
+
         function addCategory() {
             let name = document.getElementById("categoryName").value.trim();
             let status = document.getElementById("categoryStatus").checked ? "aktif" : "nonaktif";
@@ -90,29 +120,20 @@
             }
 
             categories = JSON.parse(localStorage.getItem("categories")) || [];
-
-            // Cek duplikat kategori
             if (categories.some(cat => cat.name.toLowerCase() === name.toLowerCase())) {
                 Swal.fire("Error", "Kategori sudah ada!", "error");
                 return;
             }
 
-            let newCategory = {
-                id: uuid.v4(),
-                name,
-                status
-            };
-
+            let newCategory = { id: uuid.v4(), name, status };
             categories.push(newCategory);
             localStorage.setItem("categories", JSON.stringify(categories));
-            displayCategories(); // ⬅ Pastikan kategori langsung muncul di tabel
-
+            displayCategories();
             Swal.fire("Sukses", "Kategori berhasil ditambahkan!", "success");
 
-            document.getElementById("categoryName").value = ""; // Reset input
+            document.getElementById("categoryName").value = "";
         }
 
-        // Fungsi Toggle Status Kategori
         function toggleStatus(id) {
             let category = categories.find(c => c.id === id);
             if (category) {
@@ -122,7 +143,6 @@
             }
         }
 
-        // Fungsi Mengedit Kategori
         function editCategory(id) {
             let category = categories.find(c => c.id === id);
             if (!category) return;
@@ -133,7 +153,7 @@
                     <input type="text" id="editName" class="form-control mb-2" value="${category.name}">
                     <div class="form-check form-switch">
                         <input class="form-check-input" type="checkbox" id="editStatus" ${category.status === 'aktif' ? 'checked' : ''}>
-                        <label class="form-check-label" for="editStatus">Aktif</label>
+                        <label class="form-check-label">Aktif</label>
                     </div>
                 `,
                 showCancelButton: true,
@@ -158,7 +178,6 @@
             });
         }
 
-        // Fungsi Menghapus Kategori
         function deleteCategory(id) {
             Swal.fire({
                 title: "Hapus Kategori?",
@@ -177,10 +196,14 @@
             });
         }
 
-        // Load Kategori saat Halaman Dibuka
-        document.addEventListener("DOMContentLoaded", () => {
+        function searchCategory() {
+            let keyword = document.getElementById("searchCategory").value.toLowerCase();
+            categories = JSON.parse(localStorage.getItem("categories")) || [];
+            categories = categories.filter(c => c.name.toLowerCase().includes(keyword));
             displayCategories();
-        });
+        }
+
+        document.addEventListener("DOMContentLoaded", () => displayCategories());
     </script>
 </body>
 </html>
