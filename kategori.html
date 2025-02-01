@@ -22,10 +22,10 @@
 
             <div class="mb-2">
                 <label class="form-label">Status</label>
-                <select id="categoryStatus" class="form-select">
-                    <option value="aktif">Aktif</option>
-                    <option value="nonaktif">Non-Aktif</option>
-                </select>
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="categoryStatus" checked>
+                    <label class="form-check-label" for="categoryStatus">Aktif</label>
+                </div>
             </div>
 
             <button class="btn btn-primary mt-3" onclick="addCategory()">Tambah Kategori</button>
@@ -63,9 +63,11 @@
                         <td>${category.id}</td>
                         <td>${category.name}</td>
                         <td>
-                            <span class="badge bg-${category.status === 'aktif' ? 'success' : 'danger'}">
-                                ${category.status}
-                            </span>
+                            <div class="form-check form-switch">
+                                <input type="checkbox" class="form-check-input" ${category.status === 'aktif' ? 'checked' : ''} 
+                                onchange="toggleStatus('${category.id}')">
+                                <label class="form-check-label">${category.status}</label>
+                            </div>
                         </td>
                         <td>
                             <button class="btn btn-warning btn-sm" onclick="editCategory('${category.id}')">Edit</button>
@@ -79,7 +81,7 @@
         // Fungsi Menambah Kategori
         function addCategory() {
             let name = document.getElementById("categoryName").value.trim();
-            let status = document.getElementById("categoryStatus").value;
+            let status = document.getElementById("categoryStatus").checked ? "aktif" : "nonaktif";
 
             if (!name) {
                 Swal.fire("Error", "Nama kategori tidak boleh kosong!", "error");
@@ -107,6 +109,16 @@
             document.getElementById("categoryName").value = "";
         }
 
+        // Fungsi Toggle Status Kategori
+        function toggleStatus(id) {
+            let category = categories.find(c => c.id === id);
+            if (category) {
+                category.status = category.status === "aktif" ? "nonaktif" : "aktif";
+                localStorage.setItem("categories", JSON.stringify(categories));
+                displayCategories();
+            }
+        }
+
         // Fungsi Mengedit Kategori
         function editCategory(id) {
             let category = categories.find(c => c.id === id);
@@ -116,17 +128,17 @@
                 title: "Edit Kategori",
                 html: `
                     <input type="text" id="editName" class="form-control mb-2" value="${category.name}">
-                    <select id="editStatus" class="form-select">
-                        <option value="aktif" ${category.status === "aktif" ? "selected" : ""}>Aktif</option>
-                        <option value="nonaktif" ${category.status === "nonaktif" ? "selected" : ""}>Non-Aktif</option>
-                    </select>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="editStatus" ${category.status === 'aktif' ? 'checked' : ''}>
+                        <label class="form-check-label" for="editStatus">Aktif</label>
+                    </div>
                 `,
                 showCancelButton: true,
                 confirmButtonText: "Simpan",
             }).then((result) => {
                 if (result.isConfirmed) {
                     let newName = document.getElementById("editName").value.trim();
-                    let newStatus = document.getElementById("editStatus").value;
+                    let newStatus = document.getElementById("editStatus").checked ? "aktif" : "nonaktif";
 
                     if (!newName) {
                         Swal.fire("Error", "Nama kategori tidak boleh kosong!", "error");
