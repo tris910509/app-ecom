@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manajemen Kategori</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/uuid@8.3.2/dist/uuid.min.js"></script>
+</head>
+<body>
+    <div class="container mt-4">
+        <h2 class="text-center">Manajemen Kategori</h2>
+
+        <!-- Form Tambah Kategori -->
+        <div class="card p-3 mt-3">
+            <h4>Tambah Kategori</h4>
+            <div class="mb-2">
+                <label class="form-label">Nama Kategori</label>
+                <input type="text" id="categoryName" class="form-control" placeholder="Masukkan nama kategori">
+            </div>
+
+            <div class="mb-2">
+                <label class="form-label">Status</label>
+                <select id="categoryStatus" class="form-select">
+                    <option value="aktif">Aktif</option>
+                    <option value="nonaktif">Non-Aktif</option>
+                </select>
+            </div>
+
+            <button class="btn btn-primary mt-3" onclick="addCategory()">Tambah Kategori</button>
+        </div>
+
+        <hr>
+
+        <!-- Daftar Kategori -->
+        <h4>Daftar Kategori</h4>
+        <table class="table table-striped">
+            <thead class="table-dark">
+                <tr>
+                    <th>No</th>
+                    <th>ID Kategori</th>
+                    <th>Nama Kategori</th>
+                    <th>Status</th>
+                    <th>Aksi</th>
+                </tr>
+            </thead>
+            <tbody id="categoryTable"></tbody>
+        </table>
+    </div>
+
+    <script>
+        let categories = JSON.parse(localStorage.getItem("categories")) || [];
+
+        // Fungsi Menampilkan Kategori
+        function displayCategories() {
+            let tbody = document.getElementById("categoryTable");
+            tbody.innerHTML = "";
+            categories.forEach((category, index) => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${index + 1}</td>
+                        <td>${category.id}</td>
+                        <td>${category.name}</td>
+                        <td>
+                            <span class="badge bg-${category.status === 'aktif' ? 'success' : 'danger'}">
+                                ${category.status}
+                            </span>
+                        </td>
+                        <td>
+                            <button class="btn btn-warning btn-sm" onclick="editCategory('${category.id}')">Edit</button>
+                            <button class="btn btn-danger btn-sm" onclick="deleteCategory('${category.id}')">Hapus</button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        // Fungsi Menambah Kategori
+        function addCategory() {
+            let name = document.getElementById("categoryName").value.trim();
+            let status = document.getElementById("categoryStatus").value;
+
+            if (!name) {
+                Swal.fire("Error", "Nama kategori tidak boleh kosong!", "error");
+                return;
+            }
+
+            // Cek duplikat kategori
+            if (categories.some(cat => cat.name.toLowerCase() === name.toLowerCase())) {
+                Swal.fire("Error", "Kategori sudah ada!", "error");
+                return;
+            }
+
+            let newCategory = {
+                id: uuid.v4(),
+                name,
+                status
+            };
+
+            categories.push(newCategory);
+            localStorage.setItem("categories", JSON.stringify(categories));
+            displayCategories();
+            Swal.fire("Sukses", "Kategori berhasil ditambahkan!", "success");
+
+            // Reset input
+            document.getElementById("categoryName").value = "";
+        }
+
+        // Fungsi Mengedit Kategori
+        function editCategory(id) {
+            let category = categories.find(c => c.id === id);
+            if (!category) return;
+
+            Swal.fire({
+                title: "Edit Kategori",
+                html: `
+                    <input type="text" id="editName" class="form-control mb-2" value="${category.name}">
+                    <select id="editStatus" class="form-select">
+                        <option value="aktif" ${category.status === "aktif" ? "selected" : ""}>Aktif</option>
+                        <option value="nonaktif" ${category.status === "nonaktif" ? "selected" : ""}>Non-Aktif</option>
+                    </select>
+                `,
+                showCancelButton: true,
+                confirmButtonText: "Simpan",
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    let newName = document.getElementById("editName").value.trim();
+                    let newStatus = document.getElementById("editStatus").value;
+
+                    if (!newName) {
+                        Swal.fire("Error", "Nama kategori tidak boleh kosong!", "error");
+                        return;
+                    }
+
+                    category.name = newName;
+                    category.status = newStatus;
+
+                    localStorage.setItem("categories", JSON.stringify(categories));
+                    displayCategories();
+                    Swal.fire("Sukses", "Kategori berhasil diperbarui!", "success");
+                }
+            });
+        }
+
+        // Fungsi Menghapus Kategori
+        function deleteCategory(id) {
+            Swal.fire({
+                title: "Hapus Kategori?",
+                text: "Kategori akan dihapus secara permanen!",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonText: "Ya, Hapus",
+                cancelButtonText: "Batal"
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    categories = categories.filter(c => c.id !== id);
+                    localStorage.setItem("categories", JSON.stringify(categories));
+                    displayCategories();
+                    Swal.fire("Dihapus", "Kategori telah dihapus!", "success");
+                }
+            });
+        }
+
+        // Load Kategori saat Halaman Dibuka
+        displayCategories();
+    </script>
+</body>
+</html>
