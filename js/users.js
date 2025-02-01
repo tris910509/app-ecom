@@ -12,13 +12,13 @@ document.getElementById("userForm").addEventListener("submit", function (e) {
     const fileInput = document.getElementById("photo");
     const photo = fileInput.files[0] ? URL.createObjectURL(fileInput.files[0]) : "";
 
-    const users = JSON.parse(localStorage.getItem("users")) || [];
-    users.push({ id, name, email, role, status, password: hashedPassword, photo });
+  //  const users = JSON.parse(localStorage.getItem("users")) || [];
+//    users.push({ id, name, email, role, status, password: hashedPassword, photo });
     localStorage.setItem("users", JSON.stringify(users));
 
-    Swal.fire("Success", "User added successfully!", "success").then(() => {
-        document.getElementById("userForm").reset();
-        loadUsers();
+  //  Swal.fire("Success", "User added successfully!", "success").then(() => {
+ //       document.getElementById("userForm").reset();
+  //      loadUsers();
     });
 });
 
